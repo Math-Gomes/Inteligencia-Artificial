@@ -1,4 +1,4 @@
-from statusManager import expand, calc_value, is_valid
+from statusManager import *
 
 # Seleciona os k melhores estados (aqueles que possuem maior valor)
 # de uma lista de estados.
