@@ -1,9 +1,6 @@
 from statusManager import *
 from random import randint
 
-def neighbors(status, vt, sz):
-    return [s for s in expand(status) if is_valid(vt, s, sz)]
-
 def simple_descent(status, vt, sz):
     best = status
     n = neighbors(status, vt, sz)

@@ -36,8 +36,8 @@ show_result(vt, beam_search(vt, sz, k))
 # print("Branch and Bound: (Estimativa otimista)")
 # show_result(vt, branch_and_bound(vt, sz, opt = True))
 
-# print("Branch and Bound: (Estimativa nao otimista)")
-# show_result(vt, branch_and_bound(vt, sz, opt = False))
+print("Branch and Bound: (Estimativa nao otimista)")
+show_result(vt, branch_and_bound(vt, sz, opt = False))
 
 print("Simple Descent:")
 show_result(vt, simple_descent([0]*len(vt), vt, sz))

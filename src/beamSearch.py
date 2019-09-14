@@ -1,12 +1,14 @@
 from statusManager import expand, calc_value, is_valid
 
+# Seleciona os k melhores estados (aqueles que possuem maior valor)
+# de uma lista de estados.
 def k_best_status(sl, vt, sz, k):
     sl = list(filter(lambda s: is_valid(vt, s, sz), sl))
     sl.sort(key = lambda s: calc_value(s, vt), reverse = True)
     return sl[:k]
 
 def beam_search(vt, sz, k):
-    sl = [[0]*len(vt)] # status list
+    sl = [[0]*len(vt)]
     best = []
     while True:
         sl_new = []
