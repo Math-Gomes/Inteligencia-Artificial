@@ -1,6 +1,7 @@
 from statusManager import *
 from random import random, randint, shuffle
 from math import floor, ceil
+from itertools import accumulate
 
 # Crossover do tipo "Dois Pontos" para a partir de dois pais, gerar dois filhos.
 def crossover(p1, p2):
@@ -12,8 +13,10 @@ def crossover(p1, p2):
     return s1, s2
 
 # Gera a mutação de um estado.
-# // DESCREVER COMO É FEITA A MUTAÇÃO.
-# A mutação não gera estados inválidos.
+# Inicialmente, é escolhido um valor n de itens do estado que "sofrerão" a
+# a mutação. Após isso, n itens aleatórios serão alterados. Essa alteração
+# ocorre adicionando uma quantidade aleatória entre 0 e o número máximo
+# deste item que ainda cabe na mochila. A mutação não gera estados inválidos.
 def mutation(status, vt, sz):
     n = randint(1, len(status)) # Número de itens que sofrerão a mutação.
     item_idx = list(range(len(status))) 
@@ -25,7 +28,7 @@ def mutation(status, vt, sz):
         while get_t(vt, i)*count + s_sz <= sz:
             count += 1
         count -= 1
-        status[i] += randint(0, count) # Quantidade aleatória entre [1,count] é adicionada.
+        status[i] += randint(0, count) # Quantidade aleatória entre [0,count] é adicionada.
     return status
 
 def initial_population(vt, sz, pop_sz):
@@ -36,17 +39,35 @@ def initial_population(vt, sz, pop_sz):
             pop.append(p)
     return pop
 
+def roulette_wheel(vt, sz, pop):
+    values = [(calc_value(p, vt), p) for p in pop]
+    s = sum([v for (v,p) in values]) # Soma dos valores dos elementos da população.
+    ratio = [(v/s, p) for (v, p) in values]
+    ratio.sort()
+    rt_acc = list(accumulate([v for (v,p) in ratio])) # Lista com os valores de ratio acumulados.
+    r = random()
+    for (i, c) in enumerate(rt_acc):
+        if r < c:
+            return ratio[i][1]
+
 def genetic(vt, sz, pop_sz, rt_crossover, rt_mutation, n_generations):
     best = []
-    # gerar populacao inicial
     pop = initial_population(vt, sz, pop_sz)
-    # for _ in range(n_generations): # while nao satisfaz crit de parada
-    #     # seleciona os mais aptos
-    #         # roleta, torneio ou amostragem
-    #     # gerar novos atraves de crossover e mutacao
-    #     # repor inviaveis
-    #     # avaliar nova populacao
-    # return best
+    # for i in pop:
+    #     print(i)
+    # print()
+    for _ in range(n_generations):
+        # seleciona os mais aptos (roleta, torneio ou amostragem)
+        new_pop = []
+        while len(new_pop) < pop_sz:
+            new_pop.append(roulette_wheel(vt, sz, pop))
+        # for i in new_pop:
+        #     show_result(vt, i)
+
+        # gerar novos atraves de crossover e mutacao
+        # repor inviaveis
+        # avaliar nova populacao
+    return best
 
 sz = 19 # Tamanho da mochila.
 vt = [(1,3), (4,6), (5,7)] # Tuplas (Valor, Tamanho)
@@ -54,6 +75,12 @@ vt = [(1,3), (4,6), (5,7)] # Tuplas (Valor, Tamanho)
 # sz = 132
 # vt = [(9, 10), (5, 6), (10, 9), (5, 3), (8, 1), (5, 5), (7, 1), (9, 2), (2, 7), (8, 3), (9, 7), (2, 7), (6, 2), (9, 5), (5, 6)]
 
-# genetic(vt, sz, 100,0,0,0)
-# initial_population(vt, sz, pop_sz = 10)
-show_result(vt, mutation([0,2,1], vt, sz))
+# pop = [[5, 0, 0], [0, 3, 0], [0, 2, 0], [4, 0, 0], [2, 0, 1]]
+# pop = [[5, 0, 0], [2, 0, 1]]
+# for p in pop:
+#     show_result(vt, p)
+# s = roulette_wheel(vt, sz, pop)
+# p = initial_population(vt, sz, pop_sz = 5)
+# print(p)
+# show_result(vt, mutation([0,2,1], vt, sz))
+genetic(vt, sz, pop_sz=10, rt_crossover=0.7, rt_mutation=0.5, n_generations=1)
