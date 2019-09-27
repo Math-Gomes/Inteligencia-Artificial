@@ -48,6 +48,13 @@ def search_best(vt, sl, sz):
     best.sort(key = lambda s: calc_size(s, vt))
     return best[0]
 
+# Seleciona os k melhores estados (aqueles que possuem maior valor)
+# de uma lista de estados.
+def k_best_status(sl, vt, sz, k):
+    sl = list(filter(lambda s: is_valid(vt, s, sz), sl))
+    sl.sort(key = lambda s: calc_value(s, vt), reverse = True)
+    return sl[:k]
+
 # Gera a vizinhança de um estado, que é composta pelos estados válidos de sua
 # expansão e retrocesso.
 def neighbors(status, vt, sz):
