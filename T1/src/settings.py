@@ -71,22 +71,45 @@ def table_comb_X_problems(results, input_set):
     print()
     for (c,r) in results.items():
         print(c, end='\t', sep='')
-        for (p, d) in r.items():
-            print(calc_value(d['result'], input_set[p]['vt']), end = '\t')
+        for d in r.values():
+            print(d['value'], end='\t')
         print()
 
 def normalize(results):
-    return True
+    for r in results.values():
+        keys = list(r.keys())
+        break
+    norm = {} # Resultados normalizados
+    for p in keys:
+        best_value = 0
+        # Loop para achar o maior valor obtido no problema dentre diferentes combinações.
+        for r in results.values():
+            if r[p]['value'] > best_value:
+                best_value = r[p]['value']
+        norm[p] = []
+        for r in results.values():
+            norm[p].append(r[p]['value']/best_value)
+    return norm
 
-def average(param, normalized_results):
-    return True
+def average(normalized_results, index):
+    nr = list(normalized_results.values())
+    s = sum([l[index] for l in nr])
+    return s/len(nr)
+
+def best_hiperparam(hp, normalized_results):
+    best_param, best_avg = (), 0
+    for (i, c) in enumerate(hp):
+            avg = average(normalized_results, i)
+            if avg > best_avg:
+                best_param, best_avg = c, avg
+    return (best_param, best_avg)
 
 for (mh_name, data) in metaheuristics.items():
     if data.get('train'):
         mh = data.get('func')
         param_list = [v for (k,v) in data.get('param').items()]
         hp = list(product(*param_list)) # Combinações de hiperparâmetros
-        results = {} # Talvez usar results como matriz
+        results = {}
         for c in hp: # Para cada combinação de valores de hiperparâmetros
             results_comb = {} # Cada elemento é o resultado de c aplicado ao problema p.
             for (p, d) in train_set.items():
@@ -94,40 +117,16 @@ for (mh_name, data) in metaheuristics.items():
                 r_mh = mh(d['vt'], d['t'], c) # Resultado da metaheuristica
                 end = time()
                 elapsed_time = end - begin
-                # Talvez add mais dados na tupla do resultado...
-                # Por exemplo, utilizar um dicionário e como chave a tupla que define o problema.
-                # Ou talvez utilizar results como uma matriz.
                 results_comb[p] = {
                     'result': r_mh,
+                    'value': calc_value(r_mh, d['vt']),
                     'time': elapsed_time
                 }
             results[c] = results_comb
-        
         table_comb_X_problems(results, train_set)
-
-        # for (p, d) in train_set.items():
-        #     n = normalize(results)
-
-        # best_param, best_avg = (), 0
-        # for c in hp:
-        #     avg = average(c, n)
-        #     if avg > best_avg:
-        #         best_param, best_avg = c, avg
-
-        # # Apresentar valores dos hiperparâmetros selecionados para o teste:
-        # print(best_param) # (Armazenar esse resultado em alguma estrutura)
+        normalized_results = normalize(results)
+        best_hp = best_hiperparam(hp, normalized_results)
+        print(best_hp)
 
         # Gerar boxplot dos resultados alcançados pela metaheurística
         # Gerar boxplot dos tempos alcançados pela metaheurística
-
-# RESULTS |   P1    |    P2    |    P3    |    P4    |
-#    C1   |    x    |     x    |     x    |     x    |
-#    C2   |    x    |     x    |     x    |     x    |
-#    C3   |    x    |     x    |     x    |     x    |
-#    C4   |    x    |     x    |     x    |     x    |
-#    C5   |    x    |     x    |     x    |     x    |
-#    C6   |    x    |     x    |     x    |     x    |
-#    C7   |    x    |     x    |     x    |     x    |
-
-# procurar o melhor da tabela
-# pra cada celula, dividir ela pelo maior
