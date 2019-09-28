@@ -73,21 +73,35 @@ for (mh_name, data) in metaheuristics.items():
         mh = data.get('func')
         param_list = [v for (k,v) in data.get('param').items()]
         hp = list(product(*param_list)) # Combinações de hiperparâmetros
-        results = [] # Talvez usar results como matriz
+        results = {} # Talvez usar results como matriz
         for c in hp: # Para cada combinação de valores de hiperparâmetros
-            # print(c)
+            results_comb = {} # Cada elemento é o resultado de c aplicado ao problema p.
             for (p, t, vt) in train_set:
                 begin = time()
-                r = mh(vt, t, c) # Resultado da metaheuristica
+                r_mh = mh(vt, t, c) # Resultado da metaheuristica
                 end = time()
                 elapsed_time = end - begin
                 # Talvez add mais dados na tupla do resultado...
                 # Por exemplo, utilizar um dicionário e como chave a tupla que define o problema.
                 # Ou talvez utilizar results como uma matriz.
-                results.append((p, r, elapsed_time))
+                r = [r_mh, elapsed_time]
+                results_comb[p] = r
+            results[c] = results_comb
+        
+        # print(results)
+        # for (k,v) in results.items():
+        #     print(k)
+        #     for d in v.items():
+        #         print(d)
 
-        # for i in results:
-        #     print("  ", i)
+        # for l in results:
+        #     print("=========")
+        #     for e in l:
+        #         print(e)
+        # for i in range(len(results)):
+        #     for j in range(len(results[0])):
+        #         print(results[i][j], end = ' ')
+        #     print()
 
         # for (p, t, vt) in train_set:
         #     n = normalize(results)
@@ -103,3 +117,15 @@ for (mh_name, data) in metaheuristics.items():
 
         # Gerar boxplot dos resultados alcançados pela metaheurística
         # Gerar boxplot dos tempos alcançados pela metaheurística
+
+# RESULTS |   P1    |    P2    |    P3    |    P4    |
+#    C1   |    x    |     x    |     x    |     x    |
+#    C2   |    x    |     x    |     x    |     x    |
+#    C3   |    x    |     x    |     x    |     x    |
+#    C4   |    x    |     x    |     x    |     x    |
+#    C5   |    x    |     x    |     x    |     x    |
+#    C6   |    x    |     x    |     x    |     x    |
+#    C7   |    x    |     x    |     x    |     x    |
+
+# procurar o melhor da tabela
+# pra cada celula, dividir ela pelo maior
