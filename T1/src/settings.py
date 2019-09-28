@@ -62,6 +62,19 @@ metaheuristics = {
 
 # print(json.dumps(metaheuristics, indent=4))
 
+def table_comb_X_problems(results, input_set):
+    print("\t", end='')
+    for r in results.values():
+        for p in r.keys():
+            print(p, end='\t')
+        break
+    print()
+    for (c,r) in results.items():
+        print(c, end='\t', sep='')
+        for (p, d) in r.items():
+            print(calc_value(d['result'], input_set[p]['vt']), end = '\t')
+        print()
+
 def normalize(results):
     return True
 
@@ -76,34 +89,23 @@ for (mh_name, data) in metaheuristics.items():
         results = {} # Talvez usar results como matriz
         for c in hp: # Para cada combinação de valores de hiperparâmetros
             results_comb = {} # Cada elemento é o resultado de c aplicado ao problema p.
-            for (p, t, vt) in train_set:
+            for (p, d) in train_set.items():
                 begin = time()
-                r_mh = mh(vt, t, c) # Resultado da metaheuristica
+                r_mh = mh(d['vt'], d['t'], c) # Resultado da metaheuristica
                 end = time()
                 elapsed_time = end - begin
                 # Talvez add mais dados na tupla do resultado...
                 # Por exemplo, utilizar um dicionário e como chave a tupla que define o problema.
                 # Ou talvez utilizar results como uma matriz.
-                r = [r_mh, elapsed_time]
-                results_comb[p] = r
+                results_comb[p] = {
+                    'result': r_mh,
+                    'time': elapsed_time
+                }
             results[c] = results_comb
         
-        # print(results)
-        # for (k,v) in results.items():
-        #     print(k)
-        #     for d in v.items():
-        #         print(d)
+        table_comb_X_problems(results, train_set)
 
-        # for l in results:
-        #     print("=========")
-        #     for e in l:
-        #         print(e)
-        # for i in range(len(results)):
-        #     for j in range(len(results[0])):
-        #         print(results[i][j], end = ' ')
-        #     print()
-
-        # for (p, t, vt) in train_set:
+        # for (p, d) in train_set.items():
         #     n = normalize(results)
 
         # best_param, best_avg = (), 0
