@@ -1,7 +1,7 @@
 from statusManager import *
 from hillClimbing import hill_climbing
 from beamSearch import beam_search
-# from simulatedAnnealing import simulated_annealing
+from simulatedAnnealing import simulated_annealing
 # from grasp import grasp
 # from genetic import genetic
 
@@ -14,12 +14,12 @@ import json
 # print("Hill Climbing:")
 # show_result(vt, hill_climbing(vt, sz))
 
-sz = 19 # Tamanho da mochila.
-vt = [(1,3), (4,6), (5,7)] # Tuplas (Valor, Tamanho)
+# sz = 19 # Tamanho da mochila.
+# vt = [(1,3), (4,6), (5,7)] # Tuplas (Valor, Tamanho)
 
 metaheuristics = {
     'Hill Climbing': {
-        'func': 'hill_climbing',
+        'func': hill_climbing,
         'train': False,
         'param': {}
     },
@@ -34,9 +34,9 @@ metaheuristics = {
     #     'func': simulated_annealing,
     #     'train': True,
     #     'param': {
-    #         'temp': [500, 250, 100, 90, 50],
-    #         'alfa': [0.99, 0.97, 0.95, 0.9, 0.85, 0.7],
-    #         'numIter': [50, 100, 200, 350, 500]
+    #         'temp': [100, 90, 50], # [500, 250, 100, 90, 50],
+    #         'alfa': [0.9, 0.85, 0.7], # [0.99, 0.97, 0.95, 0.9, 0.85, 0.7],
+    #         'numIter': [50, 100] # [50, 100, 200, 350, 500]
     #     }
     # },
     # 'GRASP': {
@@ -72,6 +72,7 @@ def table_comb_X_problems(results, input_set):
     for (c,r) in results.items():
         print(c, end='\t', sep='')
         for d in r.values():
+            # print(d['value'], "{0:.2f}".format(d['time']), end='\t')
             print(d['value'], end='\t')
         print()
 
@@ -104,13 +105,32 @@ def best_hiperparam(hp, normalized_results):
                 best_param, best_avg = c, avg
     return (best_param, best_avg)
 
+def print_json(results):
+    new = {}
+    for (k,v) in results.items():
+        for e in v.values():
+            e['result'] = str(e['result'])
+        new[str(k)] = v
+    print(json.dumps(new, indent=2))
+
+def write_results_file(mh, c, p, results, best_hp):
+    filename = "results/data_"+mh.replace(" ", "")+".txt"
+    with open(filename, 'a') as f:
+        f.write(mh+"\n=====================\n")
+        for (p, d) in results.items():
+            f.write(p+" = "+json.dumps(d)+"\n")
+        f.write("Melhor hiperparametro => "+str(best_hp))
+        f.write("\n")
+
 for (mh_name, data) in metaheuristics.items():
     if data.get('train'):
+        print(mh_name)
         mh = data.get('func')
         param_list = [v for (k,v) in data.get('param').items()]
         hp = list(product(*param_list)) # Combinações de hiperparâmetros
         results = {}
         for c in hp: # Para cada combinação de valores de hiperparâmetros
+            print(c)
             results_comb = {} # Cada elemento é o resultado de c aplicado ao problema p.
             for (p, d) in train_set.items():
                 begin = time()
@@ -123,10 +143,17 @@ for (mh_name, data) in metaheuristics.items():
                     'time': elapsed_time
                 }
             results[c] = results_comb
+        # print_json(results)
+        print()
         table_comb_X_problems(results, train_set)
+        print()
+
         normalized_results = normalize(results)
         best_hp = best_hiperparam(hp, normalized_results)
-        print(best_hp)
+
+        print("Melhor hiperparâmetro =>", best_hp)
+        # write_results_file(mh_name, c, p, results_comb, best_hp)
+        print()
 
         # Gerar boxplot dos resultados alcançados pela metaheurística
         # Gerar boxplot dos tempos alcançados pela metaheurística
