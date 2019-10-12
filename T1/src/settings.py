@@ -5,17 +5,12 @@ from simulatedAnnealing import simulated_annealing
 # from grasp import grasp
 # from genetic import genetic
 
-from trainSet import train_set
+from problems import train_set, test_set
+
+from output import *
 
 from itertools import product
 from time import time
-import json
-# product = produto cartesiano
-# print("Hill Climbing:")
-# show_result(vt, hill_climbing(vt, sz))
-
-# sz = 19 # Tamanho da mochila.
-# vt = [(1,3), (4,6), (5,7)] # Tuplas (Valor, Tamanho)
 
 metaheuristics = {
     'Hill Climbing': {
@@ -58,28 +53,17 @@ metaheuristics = {
     # }
 }
 
-# # a escolha do hiperparametro será de acordo com a media mornalizada
+# a escolha do hiperparametro será de acordo com a media mornalizada
 
-# print(json.dumps(metaheuristics, indent=4))
-
-def table_comb_X_problems(results, input_set):
-    print("\t", end='')
-    for r in results.values():
-        for p in r.keys():
-            print(p, end='\t')
-        break
-    print()
-    for (c,r) in results.items():
-        print(c, end='\t', sep='')
-        for d in r.values():
-            # print(d['value'], "{0:.2f}".format(d['time']), end='\t')
-            print(d['value'], end='\t')
-        print()
+# TO DO:
+# implementar grasp
+# fazer latex
+# add parametro do tempo maximo nas funcoes
+# verificar nas anotacoes se tem algo a alterar nos algoritmos
+# revisar os algoritmos e ver se está tudo certo
 
 def normalize(results):
-    for r in results.values():
-        keys = list(r.keys())
-        break
+    keys = list(results.values())[0].keys()
     norm = {} # Resultados normalizados
     for p in keys:
         best_value = 0
@@ -92,68 +76,111 @@ def normalize(results):
             norm[p].append(r[p]['value']/best_value)
     return norm
 
-def average(normalized_results, index):
-    nr = list(normalized_results.values())
-    s = sum([l[index] for l in nr])
-    return s/len(nr)
+def average(normalized_results, comb_index):
+    n = normalized_results.values()
+    s = sum([l[comb_index] for l in n])
+    return s/len(n)
+
+def k_best_hiperparams(hp, normalized_results, k):
+    best_param, best_avg = (), 0
+    k_best = []
+    for (i, c) in enumerate(hp):
+        avg = average(normalized_results, i)
+        if len(k_best) < k:
+            k_best.append((c, avg))
+            k_best.sort(key = lambda t: t[1], reverse = True)
+        elif avg > k_best[-1][1]:
+            k_best.pop()
+            k_best.append((c, avg))
+            k_best.sort(key = lambda t: t[1], reverse = True)
+    return k_best
 
 def best_hiperparam(hp, normalized_results):
-    best_param, best_avg = (), 0
-    for (i, c) in enumerate(hp):
-            avg = average(normalized_results, i)
-            if avg > best_avg:
-                best_param, best_avg = c, avg
-    return (best_param, best_avg)
+    return k_best_hiperparams(hp, normalized_results, 1)[0]
 
-def print_json(results):
-    new = {}
-    for (k,v) in results.items():
-        for e in v.values():
-            e['result'] = str(e['result'])
-        new[str(k)] = v
-    print(json.dumps(new, indent=2))
+def train():
+    for (mh_name, data) in metaheuristics.items():
+        if data.get('train'):
+            print(mh_name)
+            mh = data.get('func')
+            param_list = [v for (k,v) in data.get('param').items()]
+            hp = list(product(*param_list)) # Combinações de hiperparâmetros
+            print("NUMERO DE COMBINACOES: ", len(hp))
+            results = {}
+            for (i, c) in enumerate(hp, start=1): # Para cada combinação de valores de hiperparâmetros
+                print(i)
+                results_comb = {} # Cada elemento é o resultado de c aplicado ao problema p.
+                for (p, d) in train_set.items():
+                    begin = time()
+                    r_mh = mh(d['vt'], d['t'], c) # Resultado da metaheuristica
+                    end = time()
+                    elapsed_time = end - begin
+                    results_comb[p] = {
+                        'result': r_mh,
+                        'value': calc_value(r_mh, d['vt']),
+                        'time': elapsed_time
+                    }
+                results[c] = results_comb
+            # print_json(results)
+            print()
+            # table_comb_X_problems(results, train_set)
+            print()
 
-def write_results_file(mh, c, p, results, best_hp):
-    filename = "results/data_"+mh.replace(" ", "")+".txt"
-    with open(filename, 'a') as f:
-        f.write(mh+"\n=====================\n")
-        for (p, d) in results.items():
-            f.write(p+" = "+json.dumps(d)+"\n")
-        f.write("Melhor hiperparametro => "+str(best_hp))
-        f.write("\n")
+            normalized_results = normalize(results)
+            k_best = k_best_hiperparams(hp, normalized_results, 10)
 
-for (mh_name, data) in metaheuristics.items():
-    if data.get('train'):
-        print(mh_name)
-        mh = data.get('func')
-        param_list = [v for (k,v) in data.get('param').items()]
-        hp = list(product(*param_list)) # Combinações de hiperparâmetros
-        results = {}
-        for c in hp: # Para cada combinação de valores de hiperparâmetros
-            print(c)
-            results_comb = {} # Cada elemento é o resultado de c aplicado ao problema p.
-            for (p, d) in train_set.items():
-                begin = time()
-                r_mh = mh(d['vt'], d['t'], c) # Resultado da metaheuristica
-                end = time()
-                elapsed_time = end - begin
-                results_comb[p] = {
-                    'result': r_mh,
-                    'value': calc_value(r_mh, d['vt']),
-                    'time': elapsed_time
-                }
-            results[c] = results_comb
-        # print_json(results)
-        print()
-        table_comb_X_problems(results, train_set)
-        print()
+            print("MELHORES HIPERPARAMETROS:")
+            for (i, e) in enumerate(k_best, start=1):
+                print(i, e, sep=' - ')
+            # print(results.keys())
+            write_results_file(mh_name, c, p, results, k_best)
+            print()
 
-        normalized_results = normalize(results)
-        best_hp = best_hiperparam(hp, normalized_results)
+            # Gerar boxplot dos resultados alcançados pela metaheurística
+            # Gerar boxplot dos tempos alcançados pela metaheurística
 
-        print("Melhor hiperparâmetro =>", best_hp)
-        # write_results_file(mh_name, c, p, results_comb, best_hp)
-        print()
+def test():
+    # usar alguma estrutura pra guardar a combinacao escolhida
+    c = ()
+    for (mh_name, data) in metaheuristics.items():
+        for (p, d) in test_set:
+            begin = time()
+            r_mh = mh(d['vt'], d['t'], c) # Resultado da metaheuristica
+            end = time()
+            elapsed_time = end - begin
+            results_comb[p] = {
+                'result': r_mh,
+                'value': calc_value(r_mh, d['vt']),
+                'time': elapsed_time
+            }
+        # Obter média absoluta e desvio padrão das execuções
+        # Obter média e desvio padrão dos tempos de execução
 
-        # Gerar boxplot dos resultados alcançados pela metaheurística
-        # Gerar boxplot dos tempos alcançados pela metaheurística
+    for (p, d) in test_set:
+        # Normalizar resultados alcançados pelas metaheurísticas
+        pass
+
+    # Obter média e desvio padrão dos resultados normalizados de cada metaheurística
+
+    # Gerar tabela contendo média e desvio padrão absolutos e normalizados,
+    # e média e desvio padrão dos tempos de execução de todas as metaheurísticas
+
+    for (p, d) in test_set:
+        # Fazer ranqueamento das metaheurísticas segundo resultado absoluto
+        # Fazer ranqueamento das metaheurísticas segundo resultado normalizado
+        pass
+
+    # Obter média dos ranqueamentos das metaheurísticas segundo resultado absoluto
+
+    # Apresentar as metaheurísticas em ordem crescente de média de ranqueamento
+
+    # Obter média dos ranqueamentos das metaheurísticas segundo resultado normalizado
+
+    # Apresentar as metaheurísticas em ordem crescente de média de ranqueamento
+
+    # Gerar boxplot dos resultados alcançados pelas metaheurísticas
+
+    # Gerar boxplot dos tempos alcançados pelasa metaheurísticas
+
+if __name__ == '__main__':
+    train()
