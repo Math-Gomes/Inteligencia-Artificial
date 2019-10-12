@@ -29,17 +29,17 @@ metaheuristics = {
     #     'func': simulated_annealing,
     #     'train': True,
     #     'param': {
-    #         'temp': [100, 90, 50], # [500, 250, 100, 90, 50],
-    #         'alfa': [0.9, 0.85, 0.7], # [0.99, 0.97, 0.95, 0.9, 0.85, 0.7],
-    #         'numIter': [50, 100] # [50, 100, 200, 350, 500]
+    #         'temp': [500, 250, 100, 90, 50],
+    #         'alfa': [0.99, 0.97, 0.95, 0.9, 0.85, 0.7],
+    #         'num_iter': [50, 100, 200, 350, 500]
     #     }
     # },
     # 'GRASP': {
     #     'func': grasp,
     #     'train': True,
     #     'param': {
-    #         'numIter': [50, 100, 200, 350, 500],
-    #         'numBest': [2, 5, 10, 15]
+    #         'num_iter': [50, 100, 200, 350, 500],
+    #         'num_best': [2, 5, 10, 15]
     #     }
     # },
     # 'Genetic Algorithm': {
@@ -47,8 +47,8 @@ metaheuristics = {
     #     'train': True,
     #     'param': {
     #         'population': [10, 20, 30],
-    #         'taxa de crossover': [0.75, 0.85, 0.95],
-    #         'taxa de mutação': [0.10, 0.20, 0.30]
+    #         'crossover_tax': [0.75, 0.85, 0.95],
+    #         'mutation_tax': [0.10, 0.20, 0.30]
     #     }
     # }
 }
@@ -99,6 +99,7 @@ def best_hiperparam(hp, normalized_results):
     return k_best_hiperparams(hp, normalized_results, 1)[0]
 
 def train():
+    max_time = 2 # Tempo máx. de exec. de uma meta heurística no treino: 2 minutos.
     for (mh_name, data) in metaheuristics.items():
         if data.get('train'):
             print(mh_name)
@@ -108,11 +109,12 @@ def train():
             print("NUMERO DE COMBINACOES: ", len(hp))
             results = {}
             for (i, c) in enumerate(hp, start=1): # Para cada combinação de valores de hiperparâmetros
-                print(i)
+                print(i) # Printa a i-ésima combinação em execução
                 results_comb = {} # Cada elemento é o resultado de c aplicado ao problema p.
                 for (p, d) in train_set.items():
+                    print("  ", p) # Printa o nome do problema em execução
                     begin = time()
-                    r_mh = mh(d['vt'], d['t'], c) # Resultado da metaheuristica
+                    r_mh = mh(d['vt'], d['t'], c, max_time) # Resultado da metaheuristica
                     end = time()
                     elapsed_time = end - begin
                     results_comb[p] = {
@@ -132,7 +134,7 @@ def train():
             print("MELHORES HIPERPARAMETROS:")
             for (i, e) in enumerate(k_best, start=1):
                 print(i, e, sep=' - ')
-            # print(results.keys())
+
             write_results_file(mh_name, c, p, results, k_best)
             print()
 

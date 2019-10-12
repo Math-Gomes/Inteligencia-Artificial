@@ -21,7 +21,7 @@ def print_json(results):
         for e in v.values():
             e['result'] = str(e['result'])
         new[str(k)] = v
-    print(json.dumps(new, indent=2))
+    return "results = "+json.dumps(new, indent=4)
 
 def write_results_file(mh, c, p, results, k_best):
     filename = "results/data_"+mh.replace(" ", "")+".txt"
@@ -29,7 +29,8 @@ def write_results_file(mh, c, p, results, k_best):
     with open(filename, 'a') as f:
         f.write(mh+" "+now.strftime("%d/%m/%Y %H:%M:%S")+"\n")
 
-        # f.write("\nRESULTADOS DE CADA COMBINACAO:\n")
+        f.write("\nRESULTADOS DE CADA COMBINACAO:\n")
+        f.write(print_json(results)+"\n")
         # for (c, d) in results.items():
         #     f.write(str(c)+" =\n")
         #     for (p, d1) in d.items():
