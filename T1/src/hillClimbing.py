@@ -1,9 +1,11 @@
 from statusManager import *
+import time
 
-def hill_climbing(vt, t):
+def hill_climbing(vt, t, param, max_time):
     status = [0]*len(vt)
     vt_ = vt.copy()
-    while True:
+    timeout = time.time() + 60*max_time
+    while time.time() < timeout:
         vt_ = [e for e in vt_ if e[1] <= t]
         if vt_ == []:
             break

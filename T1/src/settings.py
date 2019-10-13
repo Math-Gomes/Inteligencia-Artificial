@@ -2,7 +2,7 @@ from statusManager import *
 from hillClimbing import hill_climbing
 from beamSearch import beam_search
 from simulatedAnnealing import simulated_annealing
-# from grasp import grasp
+from grasp import grasp
 # from genetic import genetic
 
 from problems import train_set, test_set
@@ -11,20 +11,23 @@ from output import *
 
 from itertools import product
 from time import time
+import statistics
+import json
 
 metaheuristics = {
     'Hill Climbing': {
         'func': hill_climbing,
         'train': False,
-        'param': {}
+        'param': {},
+        'hiperparam': ()
     },
-    'Beam Search': {
-        'func': beam_search,
-        'train': True,
-        'param': {
-            'k': [10, 25, 50, 100]
-        }
-    },
+    # 'Beam Search': {
+    #     'func': beam_search,
+    #     'train': True,
+    #     'param': {
+    #         'k': [10, 25, 50, 100]
+    #     }
+    # },
     # 'Simulated Annealing': {
     #     'func': simulated_annealing,
     #     'train': True,
@@ -56,9 +59,8 @@ metaheuristics = {
 # a escolha do hiperparametro será de acordo com a media mornalizada
 
 # TO DO:
-# implementar grasp
 # fazer latex
-# add parametro do tempo maximo nas funcoes
+# add parametro do tempo maximo no genetico
 # verificar nas anotacoes se tem algo a alterar nos algoritmos
 # revisar os algoritmos e ver se está tudo certo
 
@@ -80,6 +82,9 @@ def average(normalized_results, comb_index):
     n = normalized_results.values()
     s = sum([l[comb_index] for l in n])
     return s/len(n)
+
+def mean(values):
+    pass
 
 def k_best_hiperparams(hp, normalized_results, k):
     best_param, best_avg = (), 0
@@ -142,35 +147,49 @@ def train():
             # Gerar boxplot dos tempos alcançados pela metaheurística
 
 def test():
-    # usar alguma estrutura pra guardar a combinacao escolhida
-    c = ()
+    max_time = 5 # Tempo máx. de exec. de uma meta heurística no teste: 5 minutos.
+    results = {}
     for (mh_name, data) in metaheuristics.items():
-        for (p, d) in test_set:
+        print(mh_name)
+        mh = data.get('func')
+        results_mh = {} # Cada elemento é o resultado da meta heurística aplicada ao problema p.
+        hp = data.get('hiperparam') # Hiperparâmetro escolhido para a metaheurística.
+        print("HIPERPARAMETROS:", hp)
+        for (p, d) in test_set.items():
+            print("  ", p) # Printa o nome do problema em execução
             begin = time()
-            r_mh = mh(d['vt'], d['t'], c) # Resultado da metaheuristica
+            r_mh = mh(d['vt'], d['t'], hp, max_time) # Resultado da metaheuristica
             end = time()
             elapsed_time = end - begin
-            results_comb[p] = {
+            results_mh[p] = {
                 'result': r_mh,
                 'value': calc_value(r_mh, d['vt']),
                 'time': elapsed_time
             }
-        # Obter média absoluta e desvio padrão das execuções
-        # Obter média e desvio padrão dos tempos de execução
 
-    for (p, d) in test_set:
-        # Normalizar resultados alcançados pelas metaheurísticas
-        pass
+        # Obter média absoluta e desvio padrão das execuções
+        
+        # Obter média e desvio padrão dos tempos de execução
+        times = [d['time'] for d in results_mh.values()]
+        results_mh['mean_times'] = statistics.mean(times)
+        results_mh['stdev_times'] = statistics.stdev(times)
+
+        results[mh_name] = results_mh
+
+    print(json.dumps(results, indent=2))
+    # for (p, d) in test_set:
+    #     # Normalizar resultados alcançados pelas metaheurísticas
+    #     pass
 
     # Obter média e desvio padrão dos resultados normalizados de cada metaheurística
 
     # Gerar tabela contendo média e desvio padrão absolutos e normalizados,
     # e média e desvio padrão dos tempos de execução de todas as metaheurísticas
 
-    for (p, d) in test_set:
-        # Fazer ranqueamento das metaheurísticas segundo resultado absoluto
-        # Fazer ranqueamento das metaheurísticas segundo resultado normalizado
-        pass
+    # for (p, d) in test_set:
+    #     # Fazer ranqueamento das metaheurísticas segundo resultado absoluto
+    #     # Fazer ranqueamento das metaheurísticas segundo resultado normalizado
+    #     pass
 
     # Obter média dos ranqueamentos das metaheurísticas segundo resultado absoluto
 
@@ -185,4 +204,5 @@ def test():
     # Gerar boxplot dos tempos alcançados pelasa metaheurísticas
 
 if __name__ == '__main__':
-    train()
+    # train()
+    test()

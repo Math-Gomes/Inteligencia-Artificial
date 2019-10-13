@@ -23,12 +23,12 @@ def greedy_random_construct1(vt, t, num_best):
                 break
     return status
 
-def greedy_random_construct(vt, t, num_best):
+def greedy_random_construct(vt, t, num_best, timeout):
     status = [0]*len(vt)
     vt_ = vt.copy()
     vt_.sort()
     vt_.sort(key = lambda x: x[1])
-    while True:
+    while time.time() < timeout:
         vt_ = [e for e in vt_ if e[1] <= t]
         if vt_ == []:
             break
@@ -60,8 +60,9 @@ def grasp(vt, t, param, max_time):
     for _ in range(num_iter):
         if time.time() > timeout:
             break
-        status = greedy_random_construct(vt, t, num_best)
+        status = greedy_random_construct(vt, t, num_best, timeout)
         # status = simple_descent(status, vt, t)
         if calc_value(status, vt) > calc_value(best, vt):
             best = status
     return best
+
