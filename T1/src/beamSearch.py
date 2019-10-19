@@ -14,7 +14,7 @@ def beam_search(vt, t, param, max_time):
             new += expand(s)
         if time.time() > timeout:
             break
-        new = k_best_status(new, vt, sz, k)
+        new = k_best_status(new, vt, t, k)
         if new == [] or time.time() > timeout:
             break
         sl = new.copy()

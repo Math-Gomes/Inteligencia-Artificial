@@ -3,7 +3,7 @@ from hillClimbing import hill_climbing
 from beamSearch import beam_search
 from simulatedAnnealing import simulated_annealing
 from grasp import grasp
-# from genetic import genetic
+from genetic import genetic
 
 from problems import train_set, test_set
 
@@ -34,9 +34,9 @@ metaheuristics = {
     #     'func': simulated_annealing,
     #     'train': True,
     #     'param': {
-    #         'temp': [500, 250, 100, 90, 50],
-    #         'alfa': [0.99, 0.97, 0.95, 0.9, 0.85, 0.7],
-    #         'num_iter': [50, 100, 200, 350, 500]
+    #         'temp': [500, 100, 50],
+    #         'alpha': [0.95, 0.85, 0.7],
+    #         'num_iter': [350, 500]
     #     },
     #    'hiperparam': ()
     # },
@@ -49,16 +49,16 @@ metaheuristics = {
     #     },
     #    'hiperparam': ()
     # },
-    # 'Genetic Algorithm': {
-    #     'func': genetic,
-    #     'train': True,
-    #     'param': {
-    #         'population': [10, 20, 30],
-    #         'crossover_tax': [0.75, 0.85, 0.95],
-    #         'mutation_tax': [0.10, 0.20, 0.30]
-    #     },
-    #    'hiperparam': ()
-    # }
+    'Genetic Algorithm': {
+        'func': genetic,
+        'train': True,
+        'param': {
+            'population': [10, 20, 30],
+            'crossover_tax': [0.75, 0.85, 0.95],
+            'mutation_tax': [0.10, 0.20, 0.30]
+        },
+       'hiperparam': ()
+    }
 }
 
 def normalize(results):
@@ -110,9 +110,12 @@ def train_hill_climbing():
         r_mh = mh(d['vt'], d['t'], (), max_time) # Resultado da metaheuristica
         end = time()
         elapsed_time = end - begin
+        sz = calc_size(r_mh, d['vt'])
         results[p] = {
             'result': r_mh,
             'value': calc_value(r_mh, d['vt']),
+            'size': sz,
+            'ratio_size': sz / d['t'],
             'time': elapsed_time
         }
 
@@ -147,9 +150,12 @@ def train():
                     r_mh = mh(d['vt'], d['t'], c, max_time) # Resultado da metaheuristica
                     end = time()
                     elapsed_time = end - begin
+                    sz = calc_size(r_mh, d['vt'])
                     results_comb[p] = {
                         'result': r_mh,
                         'value': calc_value(r_mh, d['vt']),
+                        'size': sz,
+                        'ratio_size': sz / d['t'],
                         'time': elapsed_time
                     }
                 results[c] = results_comb
@@ -189,6 +195,7 @@ def test():
             results_mh[p] = {
                 'result': r_mh,
                 'value': calc_value(r_mh, d['vt']),
+                'size': calc_size(r_mh, d['vt']),
                 'time': elapsed_time
             }
 
@@ -230,8 +237,8 @@ def test():
 
 if __name__ == '__main__':
     train()
-    # test()
     # train_hill_climbing()
+    # test()
 
 # a escolha do hiperparametro será de acordo com a media mornalizada
 # TO DO:

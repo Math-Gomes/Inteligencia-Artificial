@@ -4,10 +4,12 @@ from random import random
 from itertools import accumulate
 import time
 
-def greedy_random_construct1(vt, t, num_best):
+def greedy_random_construct1(vt, t, num_best, timeout):
     status = [0]*len(vt)
-    while True:
+    while time.time() < timeout:
         sl = expand(status)
+        if time.time() > timeout:
+            break
         sl = k_best_status(sl, vt, t, num_best)
         if sl == []:
             break
@@ -23,6 +25,7 @@ def greedy_random_construct1(vt, t, num_best):
                 break
     return status
 
+# Matemático
 def greedy_random_construct(vt, t, num_best, timeout):
     status = [0]*len(vt)
     vt_ = vt.copy()
@@ -61,7 +64,7 @@ def grasp(vt, t, param, max_time):
         if time.time() > timeout:
             break
         status = greedy_random_construct(vt, t, num_best, timeout)
-        # status = simple_descent(status, vt, t)
+        status = simple_descent(status, vt, t, timeout)
         if calc_value(status, vt) > calc_value(best, vt):
             best = status
     return best
