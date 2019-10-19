@@ -14,6 +14,8 @@ from time import time
 import statistics
 import json
 from datetime import datetime
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 metaheuristics = {
     'Hill Climbing': {
@@ -22,14 +24,14 @@ metaheuristics = {
         'param': {},
         'hiperparam': ()
     },
-    # 'Beam Search': {
-    #     'func': beam_search,
-    #     'train': True,
-    #     'param': {
-    #         'k': [10, 25, 50, 100]
-    #     },
-    #    'hiperparam': ()
-    # },
+    'Beam Search': {
+        'func': beam_search,
+        'train': True,
+        'param': {
+            'k': [10, 25, 50, 100]
+        },
+       'hiperparam': ()
+    },
     # 'Simulated Annealing': {
     #     'func': simulated_annealing,
     #     'train': True,
@@ -49,22 +51,22 @@ metaheuristics = {
     #     },
     #    'hiperparam': ()
     # },
-    'Genetic Algorithm': {
-        'func': genetic,
-        'train': True,
-        'param': {
-            'population': [10, 20, 30],
-            'crossover_tax': [0.75, 0.85, 0.95],
-            'mutation_tax': [0.10, 0.20, 0.30]
-        },
-       'hiperparam': ()
-    }
+    # 'Genetic Algorithm': {
+    #     'func': genetic,
+    #     'train': True,
+    #     'param': {
+    #         'population': [10, 20, 30],
+    #         'crossover_tax': [0.75, 0.85, 0.95],
+    #         'mutation_tax': [0.10, 0.20, 0.30]
+    #     },
+    #    'hiperparam': ()
+    # }
 }
 
 def normalize(results):
-    keys = list(results.values())[0].keys()
+    problems_ = list(results.values())[0].keys()
     norm = {} # Resultados normalizados
-    for p in keys:
+    for p in problems_:
         best_value = 0
         # Loop para achar o maior valor obtido no problema dentre diferentes combinações.
         for r in results.values():
@@ -174,7 +176,16 @@ def train():
             write_results_file(mh_name, c, p, results, k_best)
             print()
 
+            # jogar para um arquivo os resultados normalizados
             # Gerar boxplot dos resultados alcançados pela metaheurística
+            nr_v = normalized_results.values()
+            nr_comb = [] # Resultados normalizados para cada combinação.
+            for i in range(len(hp)):
+                nr_comb.append([l[i] for l in nr_v])
+            print(nr_comb)
+            sns.boxplot(data = nr_comb, showmeans = True)
+            plt.show()
+
             # Gerar boxplot dos tempos alcançados pela metaheurística
 
 def test():
