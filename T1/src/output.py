@@ -1,6 +1,8 @@
-import json
 from datetime import datetime
-import statistics
+from statistics import mean
+import json
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 def table_comb_X_problems(results, input_set):
     print("\t", end='')
@@ -25,7 +27,7 @@ def print_json(results):
     return "results = "+json.dumps(new, indent=4)
 
 def write_results_file(mh, c, p, results, k_best, normalized_results):
-    filename = "results/r_"+mh.replace(" ", "")+".txt"
+    filename = "partial_results/r_"+mh.replace(" ", "")+".txt"
     now = datetime.now()
     with open(filename, 'a') as f:
         f.write(mh+" "+now.strftime("%d/%m/%Y %H:%M:%S")+"\n")
@@ -44,5 +46,15 @@ def write_results_file(mh, c, p, results, k_best, normalized_results):
         f.write("\nMELHORES HIPERPARAMETROS:\n")
         for (i, e) in enumerate(k_best, start = 1):
             (t, n, _) = e
-            f.write(str(i)+" - "+str(t)+" - "+str(statistics.mean(n))+"\n")
+            f.write(str(i)+" - "+str(t)+" - "+str(mean(n))+"\n")
         f.write("=============================\n\n")
+
+def create_boxplot(data, fname, x_lbl, y_lbl, x_tick_lbls):
+    fig = plt.figure()
+    fig.set_size_inches(10,8)
+    bp = sns.boxplot(data = data, showmeans = True)
+    bp.set(xlabel = x_lbl, ylabel = y_lbl)
+    bp.set_xticklabels(x_tick_lbls)
+    plt.setp(bp.get_xticklabels(), rotation = 45)
+    plt.savefig(fname = "./figs/"+fname+".png")
+    plt.savefig(fname = "./figs/"+fname+".svg")

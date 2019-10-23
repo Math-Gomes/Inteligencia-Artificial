@@ -16,8 +16,8 @@ vt = [(1,3), (4,6), (5,7)] # Tuplas (Valor, Tamanho)
 # vt = [(7,5), (10,3), (18,9), (13,2)] # Tuplas (Valor, Tamanho)
 
 # Exemplo 3:
-sz = 132
-vt = [(9, 10), (5, 6), (10, 9), (5, 3), (8, 1), (5, 5), (7, 1), (9, 2), (2, 7), (8, 3), (9, 7), (2, 7), (6, 2), (9, 5), (5, 6)]
+# sz = 132
+# vt = [(9, 10), (5, 6), (10, 9), (5, 3), (8, 1), (5, 5), (7, 1), (9, 2), (2, 7), (8, 3), (9, 7), (2, 7), (6, 2), (9, 5), (5, 6)]
 
 # sz = 100
 # vt = []
@@ -45,5 +45,6 @@ show_result(vt, simple_descent([0]*len(vt), vt, sz))
 print("Deepest Descent:")
 show_result(vt, deepest_descent([0]*len(vt), vt, sz))
 
-print("Multistart Descent:")
-show_result(vt, multistart_descent(vt, sz, iterMax = 10))
+i = 100
+print("Multistart Descent: (iterMax = {0})".format(i))
+show_result(vt, multistart_descent(vt, sz, iterMax = i))
