@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+import statistics
 
 def table_comb_X_problems(results, input_set):
     print("\t", end='')
@@ -23,8 +24,8 @@ def print_json(results):
         new[str(k)] = v
     return "results = "+json.dumps(new, indent=4)
 
-def write_results_file(mh, c, p, results, k_best):
-    filename = "results/data_"+mh.replace(" ", "")+".txt"
+def write_results_file(mh, c, p, results, k_best, normalized_results):
+    filename = "results/r_"+mh.replace(" ", "")+".txt"
     now = datetime.now()
     with open(filename, 'a') as f:
         f.write(mh+" "+now.strftime("%d/%m/%Y %H:%M:%S")+"\n")
@@ -36,7 +37,12 @@ def write_results_file(mh, c, p, results, k_best):
         #     for (p, d1) in d.items():
         #         f.write(p+" = "+json.dumps(d1)+"\n")
 
+        f.write("\nRESULTADOS NORMALIZADOS:\n")
+        for e in normalized_results:
+            f.write(str(e)+"\n")
+
         f.write("\nMELHORES HIPERPARAMETROS:\n")
         for (i, e) in enumerate(k_best, start = 1):
-            f.write(str(i)+" - "+str(e)+"\n")
+            (t, n, _) = e
+            f.write(str(i)+" - "+str(t)+" - "+str(statistics.mean(n))+"\n")
         f.write("=============================\n\n")

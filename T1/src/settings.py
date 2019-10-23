@@ -24,14 +24,14 @@ metaheuristics = {
         'param': {},
         'hiperparam': ()
     },
-    'Beam Search': {
-        'func': beam_search,
-        'train': True,
-        'param': {
-            'k': [10, 25, 50, 100]
-        },
-       'hiperparam': ()
-    },
+    # 'Beam Search': {
+    #     'func': beam_search,
+    #     'train': True,
+    #     'param': {
+    #         'k': [10, 25, 50, 100]
+    #     },
+    #    'hiperparam': ()
+    # },
     # 'Simulated Annealing': {
     #     'func': simulated_annealing,
     #     'train': True,
@@ -42,15 +42,15 @@ metaheuristics = {
     #     },
     #    'hiperparam': ()
     # },
-    # 'GRASP': {
-    #     'func': grasp,
-    #     'train': True,
-    #     'param': {
-    #         'num_iter': [50, 100, 200, 350, 500],
-    #         'num_best': [2, 5, 10, 15]
-    #     },
-    #    'hiperparam': ()
-    # },
+    'GRASP': {
+        'func': grasp,
+        'train': True,
+        'param': {
+            'num_iter': [50, 100, 200, 350, 500],
+            'num_best': [2, 5, 10, 15]
+        },
+       'hiperparam': ()
+    },
     # 'Genetic Algorithm': {
     #     'func': genetic,
     #     'train': True,
@@ -63,11 +63,13 @@ metaheuristics = {
     # }
 }
 
-def normalize(results):
+def normalize(results, hp):
     problems_ = list(results.values())[0].keys()
     norm = {} # Resultados normalizados
+    times = []
     for p in problems_:
         best_value = 0
+        p_times = []
         # Loop para achar o maior valor obtido no problema dentre diferentes combinações.
         for r in results.values():
             if r[p]['value'] > best_value:
@@ -75,29 +77,35 @@ def normalize(results):
         norm[p] = []
         for r in results.values():
             norm[p].append(r[p]['value']/best_value)
-    return norm
+            p_times.append(r[p]['time'])
+        times.append(p_times)
+    # Lista de lista em que cada lista representa uma combinação
+    # e os elementos são o tempo gasto para um dado problema.
+    times = list(map(list, zip(*times)))
 
-def average(normalized_results, comb_index):
-    n = normalized_results.values()
-    s = sum([l[comb_index] for l in n])
-    return s/len(n)
+    # Lista de listas em que cada lista representa um problema
+    # e os elementos são o problema aplicado a tal combinação.
+    nr_v = norm.values()
+
+    # Lista de listas em que cada lista representa uma combinação
+    # e os elementos são o resultado normalizado para um dado problema.
+    nr_comb = list(map(list, zip(*nr_v)))
+
+    return list(zip(hp, nr_comb, times)) # (Combinação de hp, result. norm., tempos de exe.)
 
 def k_best_hiperparams(hp, normalized_results, k):
-    best_param, best_avg = (), 0
     k_best = []
-    for (i, c) in enumerate(hp):
-        avg = average(normalized_results, i)
+    for n in normalized_results:
+        (c, nr, _) = n
+        avg = statistics.mean(nr)
         if len(k_best) < k:
-            k_best.append((c, avg))
+            k_best.append(n)
             k_best.sort(key = lambda t: t[1], reverse = True)
-        elif avg > k_best[-1][1]:
+        elif avg > statistics.mean(k_best[-1][1]):
             k_best.pop()
-            k_best.append((c, avg))
+            k_best.append(n)
             k_best.sort(key = lambda t: t[1], reverse = True)
     return k_best
-
-def best_hiperparam(hp, normalized_results):
-    return k_best_hiperparams(hp, normalized_results, 1)[0]
 
 def train_hill_climbing():
     mh_name = "Hill Climbing"
@@ -133,6 +141,16 @@ def train_hill_climbing():
         f.write("\nRESULTADOS:\n")
         f.write("results = "+json.dumps(new, indent=4)+"\n")
 
+def create_boxplot(data, fname, x_lbl, y_lbl, x_tick_lbls):
+    fig = plt.figure()
+    fig.set_size_inches(10,8)
+    bp = sns.boxplot(data = data, showmeans = True)
+    bp.set(xlabel = x_lbl, ylabel = y_lbl)
+    bp.set_xticklabels(x_tick_lbls)
+    plt.setp(bp.get_xticklabels(), rotation = 45)
+    plt.savefig(fname = "./figs/"+fname+".png")
+    plt.savefig(fname = "./figs/"+fname+".svg")
+
 def train():
     max_time = 2 # Tempo máx. de exec. de uma meta heurística no treino: 2 minutos.
     for (mh_name, data) in metaheuristics.items():
@@ -166,27 +184,42 @@ def train():
             # table_comb_X_problems(results, train_set)
             print()
 
-            normalized_results = normalize(results)
+            normalized_results = normalize(results, hp)
             k_best = k_best_hiperparams(hp, normalized_results, 10)
 
             print("MELHORES HIPERPARAMETROS:")
             for (i, e) in enumerate(k_best, start=1):
-                print(i, e, sep=' - ')
+                (c, n, _) = e
+                print(i, c, statistics.mean(n), sep=' - ')
 
-            write_results_file(mh_name, c, p, results, k_best)
-            print()
+            write_results_file(mh_name, c, p, results, k_best, normalized_results)
 
-            # jogar para um arquivo os resultados normalizados
             # Gerar boxplot dos resultados alcançados pela metaheurística
-            nr_v = normalized_results.values()
-            nr_comb = [] # Resultados normalizados para cada combinação.
-            for i in range(len(hp)):
-                nr_comb.append([l[i] for l in nr_v])
-            print(nr_comb)
-            sns.boxplot(data = nr_comb, showmeans = True)
-            plt.show()
+            hp_str = []
+            data_bp = []
+            for (c, d, _) in normalized_results:
+                hp_str.append(str(c))
+                data_bp.append(d)
+            create_boxplot(
+                data_bp,
+                "values_"+mh_name.replace(" ", ""),
+                "Combinações de hiperparâmetros",
+                "Resultados dos problemas normalizados",
+                hp_str
+            )
 
             # Gerar boxplot dos tempos alcançados pela metaheurística
+            data_bp = []
+            for (c, _, d) in normalized_results:
+                hp_str.append(str(c))
+                data_bp.append(d)
+            create_boxplot(
+                data_bp,
+                "times_"+mh_name.replace(" ", ""),
+                "Combinações de hiperparâmetros",
+                "Tempo de execucao (em segundos)",
+                hp_str
+            )
 
 def test():
     max_time = 5 # Tempo máx. de exec. de uma meta heurística no teste: 5 minutos.
@@ -250,10 +283,3 @@ if __name__ == '__main__':
     train()
     # train_hill_climbing()
     # test()
-
-# a escolha do hiperparametro será de acordo com a media mornalizada
-# TO DO:
-# fazer latex
-# add parametro do tempo maximo no genetico
-# verificar nas anotacoes se tem algo a alterar nos algoritmos
-# revisar os algoritmos e ver se está tudo certo
