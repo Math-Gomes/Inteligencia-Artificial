@@ -16,12 +16,12 @@ from statistics import mean, stdev
 from datetime import datetime
 
 metaheuristics = {
-    # 'Hill Climbing': {
-    #     'func': hill_climbing,
-    #     'train': False,
-    #     'param': {},
-    #     'hiperparam': ()
-    # },
+    'Hill Climbing': {
+        'func': hill_climbing,
+        'train': False,
+        'param': {},
+        'hiperparam': ()
+    },
     'Beam Search': {
         'func': beam_search,
         'train': True,
@@ -61,7 +61,7 @@ metaheuristics = {
     # }
 }
 
-def normalize(results, hp):
+def normalize_train(results, hp):
     problems_ = list(results.values())[0].keys()
     norm = {} # Resultados normalizados
     times = []
@@ -74,11 +74,12 @@ def normalize(results, hp):
         for r in results.values():
             if r[p]['value'] > best_value:
                 best_value = r[p]['value']
-        norm[p] = []
 
+        norm[p] = []
         for r in results.values():
             norm[p].append(r[p]['value'] / best_value)
             p_times.append(r[p]['time'])
+
         times.append(p_times)
 
     # Lista de lista em que cada lista representa uma combinação
@@ -94,6 +95,47 @@ def normalize(results, hp):
     nr_comb = list(map(list, zip(*nr_v)))
 
     return list(zip(hp, nr_comb, times)) # (Combinação de hp, result. norm., tempos de exe.)
+
+def normalize_test(results):
+    problems_ = list(list(results.values())[0].keys())[:len(test_set)]
+    norm = {} # Resultados normalizados
+    times = []
+
+    for p in problems_:
+        best_value = 0
+        p_times = []
+
+        # Loop para achar o maior valor obtido no problema dentre diferentes heurísticas.
+        for r in results.values():
+            if r[p]['value'] > best_value:
+                best_value = r[p]['value']
+
+        norm[p] = []
+        for r in results.values():
+            norm[p].append(r[p]['value'] / best_value)
+            p_times.append(r[p]['time'])
+
+        times.append(p_times)
+
+    # Lista de lista em que cada lista representa uma metaheurística
+    # e os elementos são o tempo gasto para uma dado problema.
+    times = list(map(list, zip(*times)))
+
+    # Lista de listas em que cada lista representa um problema
+    # e os elementos são o resultado do problema submetido a uma metaheuristica.
+    nr_v = norm.values()
+
+    # Lista de listas em que cada lista representa uma metaheurística
+    # e os elementos são o resultado dos problemas aplicados a esta metaheurística.
+    nr_mh = list(map(list, zip(*nr_v)))
+    
+    values_mean  = list(map(mean, nr_mh))
+    values_stdev = list(map(stdev, nr_mh))
+
+    times_mean  = list(map(mean, times))
+    times_stdev = list(map(stdev, times))
+
+    return list(zip(results.keys(), values_mean, values_stdev, times_mean, times_stdev))
 
 def k_best_hiperparams(hp, normalized_results, k):
     k_best = []
@@ -144,6 +186,9 @@ def train_hill_climbing():
         f.write("results = "+json.dumps(new, indent=4)+"\n")
 
 def train():
+    now = datetime.now()
+    print("ALGORITMO DE TREINO :: INICIO DA EXEC. => "+now.strftime("%d/%m/%Y %H:%M:%S")+"\n")
+
     max_time = 2 # Tempo máx. de exec. de uma meta heurística no treino: 2 minutos.
     for (mh_name, data) in metaheuristics.items():
         if data.get('train'):
@@ -158,11 +203,14 @@ def train():
                 results_comb = {} # Cada elemento é o resultado de c aplicado ao problema p.
                 for (p, d) in train_set.items():
                     print("  ", p) # Printa o nome do problema em execução
+
                     begin = time()
                     r_mh = mh(d['vt'], d['t'], c, max_time) # Resultado da metaheuristica
                     end = time()
+
                     elapsed_time = end - begin
                     sz = calc_size(r_mh, d['vt'])
+
                     results_comb[p] = {
                         'result': r_mh,
                         'value': calc_value(r_mh, d['vt']),
@@ -171,10 +219,11 @@ def train():
                         'time': elapsed_time
                     }
                 results[c] = results_comb
+
             print("\n")
 
-            normalized_results = normalize(results, hp)
-            k_best = k_best_hiperparams(hp, normalized_results, 10)
+            nr = normalize_train(results, hp) # n = resultados normalizados
+            k_best = k_best_hiperparams(hp, nr, 10)
             k_best.sort(key = lambda t: mean(t[1]), reverse = True)
 
             print("MELHORES HIPERPARAMETROS:")
@@ -182,7 +231,7 @@ def train():
                 (c, n, _) = e
                 print(i, c, mean(n), sep=' - ')
 
-            write_results_file(mh_name, c, p, results, k_best, normalized_results)
+            write_train_results(mh_name, c, p, results, k_best, nr)
 
             hp_str = []
             data_mean = []
@@ -200,7 +249,6 @@ def train():
                 "Resultados dos problemas normalizados",
                 hp_str
             )
-
             # Gera boxplot dos tempos alcançados pela metaheurística
             create_boxplot(
                 data_times,
@@ -211,51 +259,56 @@ def train():
             )
 
 def test():
+    now = datetime.now()
+    print("ALGORITMO DE TESTE :: INICIO DA EXEC. => "+now.strftime("%d/%m/%Y %H:%M:%S")+"\n")
+
     max_time = 5 # Tempo máx. de exec. de uma meta heurística no teste: 5 minutos.
     results = {}
     for (mh_name, data) in metaheuristics.items():
-        print(mh_name)
         mh = data.get('func')
         results_mh = {} # Cada elemento é o resultado da meta heurística aplicada ao problema p.
         hp = data.get('hiperparam') # Hiperparâmetro escolhido para a metaheurística.
+        print(mh_name)
         print("HIPERPARAMETRO:", hp)
         for (p, d) in test_set.items():
-            print("  ", p) # Printa o nome do problema em execução
+            print("  ", p)
+
             begin = time()
             r_mh = mh(d['vt'], d['t'], hp, max_time) # Resultado da metaheuristica
             end = time()
+
             elapsed_time = end - begin
             sz = calc_size(r_mh, d['vt'])
+
             results_mh[p] = {
-                'result': r_mh,
+                # 'result': r_mh,
                 'value': calc_value(r_mh, d['vt']),
                 'size': sz,
                 'ratio_size': sz / d['t'],
                 'time': elapsed_time
             }
 
-        # Obter média absoluta e desvio padrão das execuções
         values = [d['value'] for d in results_mh.values()]
+        times  = [d['time' ] for d in results_mh.values()]
 
-        # Obter média e desvio padrão dos tempos de execução
-        times = [d['time'] for d in results_mh.values()]
-
+        # Média absoluta e desvio padrão das execuções
         results_mh['values_mean' ] = mean(values)
         results_mh['values_stdev'] = stdev(values)
+
+        # Média e desvio padrão dos tempos de execução
         results_mh['times_mean'  ] = mean(times)
         results_mh['times_stdev' ] = stdev(times)
 
         print("Values :: mean> {0:.3f} ; stdev> {1:.3f}".format(results_mh['values_mean'], results_mh['values_stdev']))
-        print("Times  :: mean> {0:.3f} ; stdev> {1:.3f}".format(results_mh['times_mean'], results_mh['times_stdev']))
-
+        print("Times  :: mean> {0:.3f} ; stdev> {1:.3f}".format(results_mh[ 'times_mean'], results_mh[ 'times_stdev']))
+        print()
+        # print(results_mh)
         results[mh_name] = results_mh
 
-    # print(json.dumps(results, indent=2))
-    # for (p, d) in test_set:
-    #     # Normalizar resultados alcançados pelas metaheurísticas
-    #     pass
+    # write_test_results(results)
 
-    # Obter média e desvio padrão dos resultados normalizados de cada metaheurística
+    nr = normalize_test(results)
+    print(nr)
 
     # Gerar tabela contendo média e desvio padrão absolutos e normalizados,
     # e média e desvio padrão dos tempos de execução de todas as metaheurísticas

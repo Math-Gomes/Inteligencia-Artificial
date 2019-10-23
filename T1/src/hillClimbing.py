@@ -2,7 +2,7 @@ from statusManager import *
 import time
 
 # Matemático
-def hill_climbing1(vt, t, param, max_time):
+def hill_climbing(vt, t, param, max_time):
     status = [0]*len(vt)
     vt_ = vt.copy()
     timeout = time.time() + 60*max_time
@@ -17,7 +17,7 @@ def hill_climbing1(vt, t, param, max_time):
         t -= items * get_t(vt, i)
     return status
 
-def hill_climbing(vt, sz, param, max_time):
+def hill_climbing1(vt, sz, param, max_time):
     status = [0]*len(vt)
     best = []
     timeout = time.time() + 60*max_time

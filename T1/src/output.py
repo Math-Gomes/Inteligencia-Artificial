@@ -26,7 +26,7 @@ def print_json(results):
         new[str(k)] = v
     return "results = "+json.dumps(new, indent=4)
 
-def write_results_file(mh, c, p, results, k_best, normalized_results):
+def write_train_results(mh, c, p, results, k_best, normalized_results):
     filename = "partial_results/r_"+mh.replace(" ", "")+".txt"
     now = datetime.now()
     with open(filename, 'a') as f:
@@ -34,10 +34,6 @@ def write_results_file(mh, c, p, results, k_best, normalized_results):
 
         f.write("\nRESULTADOS DE CADA COMBINACAO:\n")
         f.write(print_json(results)+"\n")
-        # for (c, d) in results.items():
-        #     f.write(str(c)+" =\n")
-        #     for (p, d1) in d.items():
-        #         f.write(p+" = "+json.dumps(d1)+"\n")
 
         f.write("\nRESULTADOS NORMALIZADOS:\n")
         for e in normalized_results:
@@ -47,6 +43,14 @@ def write_results_file(mh, c, p, results, k_best, normalized_results):
         for (i, e) in enumerate(k_best, start = 1):
             (t, n, _) = e
             f.write(str(i)+" - "+str(t)+" - "+str(mean(n))+"\n")
+        f.write("=============================\n\n")
+
+def write_test_results(results):
+    filename = "results_test/data.txt"
+    now = datetime.now()
+    with open(filename, 'a') as f:
+        f.write("EXECUCAO > "+now.strftime("%d/%m/%Y %H:%M:%S")+"\n")
+        f.write(json.dumps(results, indent=2))
         f.write("=============================\n\n")
 
 def create_boxplot(data, fname, x_lbl, y_lbl, x_tick_lbls):
