@@ -135,6 +135,66 @@ def normalize_test(results):
 
     return list(zip(results.keys(), values_mean, values_stdev))
 
+def ranking_abs(results):
+    rank = {}
+    for p in test_set.keys():
+
+        # Procedimento para ordenar os valores obtidos do problema
+        # aplicado as metaheuristicas.
+        tmp = []
+        for mh in metaheuristics.keys():
+            tmp.append([mh, results[mh][p]['value']])
+        tmp.sort(key = lambda k: k[1], reverse = True)
+
+        # Procedimento para ranquear as metaheuristicas.
+        # Se duas metaheuristicas obtém o mesmo valor, elas recebem
+        # a mesma colocação i.
+        i = 1
+        r = [[*tmp[0], i]]
+        for e in tmp[1:]:
+            # Verifica se o último elemento já ranqueado tem o mesmo valor que o próximo.
+            if e[1] != r[-1][1]:
+                i += 1
+            r.append([*e, i])
+        r.sort()
+        rank[p] = r
+
+    return rank
+
+def ranking_abs_mean(rank_abs):
+    rank = {}
+    for mh in metaheuristics.keys():
+        rank[mh] = []
+
+    for d in rank_abs.values():
+        for (mh, _, r) in d:
+            rank[mh].append(r)
+
+    for (mh, ranks) in rank.items():
+        rank[mh] = mean(ranks)
+    # for r in rank.items():
+    #     print(r)
+
+    tmp = list(rank.items())
+    tmp.sort(key = lambda k: k[1])
+    # for r in tmp:
+    #     print(r)
+
+    i = 1
+    rank_ = [[i, *tmp[0]]]
+    for e in tmp[1:]:
+        # Verifica se o último elemento já ranqueado tem o mesmo valor que o próximo.
+        if e[0] != rank_[-1][1]:
+            i += 1
+        rank_.append([i, *e])
+
+    # TRATAR O EMPATE
+
+    return r
+
+def ranking_norm(results):
+    pass
+
 def k_best_hiperparams(hp, normalized_results, k):
     k_best = []
     for n in normalized_results:
@@ -294,8 +354,8 @@ def test():
         results_mh['values_stdev'] = stdev(values)
 
         # Média e desvio padrão dos tempos de execução
-        results_mh['times_mean'  ] = mean(times)
-        results_mh['times_stdev' ] = stdev(times)
+        results_mh['times_mean' ] = mean(times)
+        results_mh['times_stdev'] = stdev(times)
 
         print("Values :: mean> {0:.3f} ; stdev> {1:.3f}".format(results_mh['values_mean'], results_mh['values_stdev']))
         print("Times  :: mean> {0:.3f} ; stdev> {1:.3f}".format(results_mh[ 'times_mean'], results_mh[ 'times_stdev']))
@@ -303,47 +363,36 @@ def test():
         # print(results_mh)
         results[mh_name] = results_mh
 
-    # write_test_results(results)
-
     nr = normalize_test(results)
     print(nr, end = "\n\n")
 
     # Tabela contendo média e desvio padrão absolutos e normalizados,
     # e média e desvio padrão dos tempos de execução de todas as metaheurísticas
+    # table = create_table(results, nr)
+    # print(table)
+    # print(table.get_html_string())
 
-    # Modularizar essa parte:
-    titles = ["METAHEURISTICA", "MEDIA_ABS", "STDEV_ABS", "MEDIA_NORM", "STDEV_NORM", "MEDIA_TEMPO", "STDEV_TEMPO"]
-    table = PrettyTable(titles)
-    lines = []
-    for (mh_name, mean_n, stdev_n) in nr:
-        lines.append([
-            mh_name,
-            results[mh_name]['values_mean'], results[mh_name]['values_stdev'],
-            mean_n, stdev_n,
-            results[mh_name]['times_mean'], results[mh_name]['times_stdev']
-        ])
-        table.add_row(lines[-1])
-    print(table)
-    # print("METAHEURISTICA\tMEDIA_ABS\tSTDEV_ABS\tMEDIA_NORM\tSTDEV_NORM\tMEDIA_TEMPO\tSTDEV_TEMPO")
-    # for l in lines:
-    #     print("{0}\t{1:.3f}\t{2:.3f}\t{3:.3f}\t{4:.3f}\t{5:.3f}\t{6:.3f}".format(*l))
-    print()
+    # write_test_results(results, table)
 
-    # for (p, d) in test_set:
-    #     # Fazer ranqueamento das metaheurísticas segundo resultado absoluto
-    #     # Fazer ranqueamento das metaheurísticas segundo resultado normalizado
-    #     pass
+    # Ranqueamento das metaheurísticas segundo resultado absoluto
+    rank_abs = ranking_abs(results)
+    # for r in rank_abs.items():
+    #     print(r)
+
+    # Ranqueamento das metaheurísticas segundo resultado normalizado
+    # ???
+    # rank_norm = ranking_norm(results)
 
     # Obter média dos ranqueamentos das metaheurísticas segundo resultado absoluto
-
     # Apresentar as metaheurísticas em ordem crescente de média de ranqueamento
+    rank_mean = ranking_abs_mean(rank_abs)
+    for r in rank_mean:
+        print(r)
 
     # Obter média dos ranqueamentos das metaheurísticas segundo resultado normalizado
-
     # Apresentar as metaheurísticas em ordem crescente de média de ranqueamento
 
     # Gerar boxplot dos resultados alcançados pelas metaheurísticas
-
     # Gerar boxplot dos tempos alcançados pelasa metaheurísticas
 
 if __name__ == '__main__':
