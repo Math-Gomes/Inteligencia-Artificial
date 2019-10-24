@@ -14,6 +14,7 @@ from itertools import product
 from time import time
 from statistics import mean, stdev
 from datetime import datetime
+from prettytable import PrettyTable
 
 metaheuristics = {
     'Hill Climbing': {
@@ -132,10 +133,7 @@ def normalize_test(results):
     values_mean  = list(map(mean, nr_mh))
     values_stdev = list(map(stdev, nr_mh))
 
-    times_mean  = list(map(mean, times))
-    times_stdev = list(map(stdev, times))
-
-    return list(zip(results.keys(), values_mean, values_stdev, times_mean, times_stdev))
+    return list(zip(results.keys(), values_mean, values_stdev))
 
 def k_best_hiperparams(hp, normalized_results, k):
     k_best = []
@@ -308,10 +306,28 @@ def test():
     # write_test_results(results)
 
     nr = normalize_test(results)
-    print(nr)
+    print(nr, end = "\n\n")
 
-    # Gerar tabela contendo média e desvio padrão absolutos e normalizados,
+    # Tabela contendo média e desvio padrão absolutos e normalizados,
     # e média e desvio padrão dos tempos de execução de todas as metaheurísticas
+
+    # Modularizar essa parte:
+    titles = ["METAHEURISTICA", "MEDIA_ABS", "STDEV_ABS", "MEDIA_NORM", "STDEV_NORM", "MEDIA_TEMPO", "STDEV_TEMPO"]
+    table = PrettyTable(titles)
+    lines = []
+    for (mh_name, mean_n, stdev_n) in nr:
+        lines.append([
+            mh_name,
+            results[mh_name]['values_mean'], results[mh_name]['values_stdev'],
+            mean_n, stdev_n,
+            results[mh_name]['times_mean'], results[mh_name]['times_stdev']
+        ])
+        table.add_row(lines[-1])
+    print(table)
+    # print("METAHEURISTICA\tMEDIA_ABS\tSTDEV_ABS\tMEDIA_NORM\tSTDEV_NORM\tMEDIA_TEMPO\tSTDEV_TEMPO")
+    # for l in lines:
+    #     print("{0}\t{1:.3f}\t{2:.3f}\t{3:.3f}\t{4:.3f}\t{5:.3f}\t{6:.3f}".format(*l))
+    print()
 
     # for (p, d) in test_set:
     #     # Fazer ranqueamento das metaheurísticas segundo resultado absoluto
