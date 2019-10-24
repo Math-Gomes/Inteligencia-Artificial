@@ -209,40 +209,6 @@ def k_best_hiperparams(hp, normalized_results, k):
             k_best.sort(key = lambda t: t[1], reverse = True)
     return k_best
 
-def train_hill_climbing():
-    mh_name = "Hill Climbing"
-    data = metaheuristics[mh_name]
-    mh = data.get('func')
-    results = {}
-    max_time = 2
-    print(mh_name)
-    for (p, d) in train_set.items():
-        print("  ", p) # Printa o nome do problema em execução
-        begin = time()
-        r_mh = mh(d['vt'], d['t'], (), max_time) # Resultado da metaheuristica
-        end = time()
-        elapsed_time = end - begin
-        sz = calc_size(r_mh, d['vt'])
-        results[p] = {
-            'result': r_mh,
-            'value': calc_value(r_mh, d['vt']),
-            'size': sz,
-            'ratio_size': sz / d['t'],
-            'time': elapsed_time
-        }
-
-    new = {}
-    for (p,d) in results.items():
-        d['result'] = str(d['result'])
-        new[p] = d
-
-    filename = "results/data_"+mh_name.replace(" ", "")+".txt"
-    now = datetime.now()
-    with open(filename, 'a') as f:
-        f.write(mh_name+" "+now.strftime("%d/%m/%Y %H:%M:%S")+"\n")
-        f.write("\nRESULTADOS:\n")
-        f.write("results = "+json.dumps(new, indent=4)+"\n")
-
 def train():
     now = datetime.now()
     print("ALGORITMO DE TREINO :: INICIO DA EXEC. => "+now.strftime("%d/%m/%Y %H:%M:%S")+"\n")
@@ -398,4 +364,5 @@ def test():
 if __name__ == '__main__':
     # train()
     test()
-    # train_hill_climbing()
+
+# https://tableconvert.com/?output=latex
