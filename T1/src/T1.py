@@ -358,7 +358,7 @@ def test():
     # Obter média dos ranqueamentos das metaheurísticas segundo resultado normalizado
     # Apresentar as metaheurísticas em ordem crescente de média de ranqueamento
 
-    # Gerar boxplot dos resultados alcançados pelas metaheurísticas
+    # Gerar boxplot dos resultados normalizados alcançados pelas metaheurísticas
     # Gerar boxplot dos tempos alcançados pelasa metaheurísticas
 
 if __name__ == '__main__':
