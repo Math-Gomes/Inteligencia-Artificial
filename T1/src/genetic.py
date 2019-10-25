@@ -35,24 +35,23 @@ def mutation(status, vt, sz, rt):
         while get_t(vt, i)*count + s_sz <= sz:
             count += 1
         count -= 1
-        s[i] += randint(0, count) # Quantidade aleatória entre [0,count] é adicionada.
+        s[i] += randint(0, floor(count*0.7)) # Quantidade aleatória entre [0,count] é adicionada.
     return s
 
 # Gera a população inicial, a partir da mutação, por exemplo, do estado [0,0,0].
 def initial_population(vt, sz, pop_sz, rt):
     pop = []
-    old_len = 0
+
     # Adiciona o primeiro elemento na população, garantindo que haverá pelo menos um diferente de [0,...,0].
     while True:
         p = mutation([0]*len(vt), vt, sz, 1)
         if p != [0]*len(vt):
             pop.append(p)
             break
+
     # Completa a população.
     while len(pop) < pop_sz:
-        p = mutation([0]*len(vt), vt, sz, rt)
-        # if not p in pop:
-        pop.append(p)
+        pop.append(mutation([0]*len(vt), vt, sz, rt))
     return pop
 
 def roulette_wheel(vt, sz, pop):

@@ -22,14 +22,14 @@ def simulated_annealing(vt, t, param, max_time):
             if  time.time() > timeout:
                 break
             shuffle(n)
-            s_ = n[-1]
+            s_ = n.pop()
             vs_ = calc_value(s_, vt)
             if vs_ > calc_value(s, vt):
                 s = s_
                 n = neighbors(s, vt, t)
                 if vs_ > calc_value(best, vt):
                     best = s
-            elif probability(s, s_, temp, vt) > random():
+            elif random() < probability(s, s_, temp, vt):
                 s = s_
                 n = neighbors(s, vt, t)
         temp *= alpha

@@ -1,5 +1,5 @@
 from datetime import datetime
-from statistics import mean
+from statistics import mean, stdev
 import json
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -49,18 +49,18 @@ def create_boxplot(data, fname, x_lbl, y_lbl, x_tick_lbls):
     bp.set(xlabel = x_lbl, ylabel = y_lbl)
     bp.set_xticklabels(x_tick_lbls)
     plt.setp(bp.get_xticklabels(), rotation = 45)
-    plt.savefig(fname = "./figs/"+fname+".png")
-    plt.savefig(fname = "./figs/"+fname+".svg")
+    plt.savefig(fname = fname+".png")
+    plt.savefig(fname = fname+".svg")
 
 def create_table(results, normalized_results):
     titles = ["METAHEURISTICA", "MEDIA ABS", "DP ABS", "MEDIA NORM", "DP NORM", "MEDIA TEMPO", "DP TEMPO"]
     table = PrettyTable(titles)
     lines = []
-    for (mh_name, mean_n, stdev_n) in normalized_results:
+    for (mh_name, nr_mh, _) in normalized_results:
         lines.append([
             mh_name,
             results[mh_name]['values_mean'], results[mh_name]['values_stdev'],
-            mean_n, stdev_n,
+            mean(nr_mh), stdev(nr_mh),
             results[mh_name]['times_mean'], results[mh_name]['times_stdev']
         ])
         table.add_row(lines[-1])

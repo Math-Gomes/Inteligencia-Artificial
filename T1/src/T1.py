@@ -21,7 +21,8 @@ metaheuristics = {
         'func': hill_climbing,
         'train': False,
         'param': {},
-        'hiperparam': ()
+        'hiperparam': (),
+        'hiperparam_train': ()
     },
     'Beam Search': {
         'func': beam_search,
@@ -31,43 +32,42 @@ metaheuristics = {
         },
        'hiperparam': (10,)
     },
-    # 'Simulated Annealing': {
-    #     'func': simulated_annealing,
-    #     'train': True,
-    #     'param': {
-    #         'temp': [500, 100, 50],
-    #         'alpha': [0.95, 0.85, 0.7],
-    #         'num_iter': [350, 500]
-    #     },
-    #    'hiperparam': ()
-    # },
-    # 'GRASP': {
-    #     'func': grasp,
-    #     'train': True,
-    #     'param': {
-    #         'num_iter': [50, 100, 200, 350, 500],
-    #         'num_best': [2, 5, 10, 15]
-    #     },
-    #    'hiperparam': ()
-    # },
-    # 'Genetic Algorithm': {
-    #     'func': genetic,
-    #     'train': True,
-    #     'param': {
-    #         'population': [10, 20, 30],
-    #         'crossover_tax': [0.75, 0.85, 0.95],
-    #         'mutation_tax': [0.10, 0.20, 0.30]
-    #     },
-    #    'hiperparam': ()
-    # }
+    'Simulated Annealing': {
+        'func': simulated_annealing,
+        'train': True,
+        'param': {
+            'temp': [500, 100, 50],
+            'alpha': [0.95, 0.85, 0.7],
+            'num_iter': [350, 500]
+        },
+       'hiperparam': (500, 0.95, 500)
+    },
+    'GRASP': {
+        'func': grasp,
+        'train': True,
+        'param': {
+            'num_iter': [50, 100, 200, 350, 500],
+            'num_best': [2, 5, 10, 15]
+        },
+       'hiperparam': (500, 5)
+    },
+    'Genetic Algorithm': {
+        'func': genetic,
+        'train': True,
+        'param': {
+            'population': [10, 20, 30],
+            'crossover_tax': [0.75, 0.85, 0.95],
+            'mutation_tax': [0.10, 0.20, 0.30]
+        },
+       'hiperparam': (30, 0.75, 0.3)
+    }
 }
 
 def normalize_train(results, hp):
-    problems_ = list(results.values())[0].keys()
     norm = {} # Resultados normalizados
     times = []
 
-    for p in problems_:
+    for p in train_set.keys():
         best_value = 0
         p_times = []
 
@@ -87,22 +87,17 @@ def normalize_train(results, hp):
     # e os elementos são o tempo gasto para um dado problema.
     times = list(map(list, zip(*times)))
 
-    # Lista de listas em que cada lista representa um problema
-    # e os elementos são o problema aplicado a tal combinação.
-    nr_v = norm.values()
-
     # Lista de listas em que cada lista representa uma combinação
     # e os elementos são o resultado normalizado para um dado problema.
-    nr_comb = list(map(list, zip(*nr_v)))
+    nr_comb = list(map(list, zip(*norm.values())))
 
     return list(zip(hp, nr_comb, times)) # (Combinação de hp, result. norm., tempos de exe.)
 
 def normalize_test(results):
-    problems_ = list(list(results.values())[0].keys())[:len(test_set)]
     norm = {} # Resultados normalizados
     times = []
 
-    for p in problems_:
+    for p in test_set.keys():
         best_value = 0
         p_times = []
 
@@ -122,18 +117,11 @@ def normalize_test(results):
     # e os elementos são o tempo gasto para uma dado problema.
     times = list(map(list, zip(*times)))
 
-    # Lista de listas em que cada lista representa um problema
-    # e os elementos são o resultado do problema submetido a uma metaheuristica.
-    nr_v = norm.values()
-
     # Lista de listas em que cada lista representa uma metaheurística
     # e os elementos são o resultado dos problemas aplicados a esta metaheurística.
-    nr_mh = list(map(list, zip(*nr_v)))
-    
-    values_mean  = list(map(mean, nr_mh))
-    values_stdev = list(map(stdev, nr_mh))
+    nr_mh = list(map(list, zip(*norm.values())))
 
-    return list(zip(results.keys(), values_mean, values_stdev))
+    return list(zip(results.keys(), nr_mh, times))
 
 def ranking_abs(results):
     rank = {}
@@ -190,7 +178,7 @@ def ranking_abs_mean(rank_abs):
 
     # TRATAR O EMPATE
 
-    return r
+    return rank_
 
 def ranking_norm(results):
     pass
@@ -258,17 +246,17 @@ def train():
             write_train_results(mh_name, c, p, results, k_best, nr)
 
             hp_str = []
-            data_mean = []
+            data_values = []
             data_times = []
             for (c, d, t) in k_best:
                 hp_str.append(str(c))
-                data_mean.append(d)
+                data_values.append(d)
                 data_times.append(t)
 
             # Gera boxplot dos resultados alcançados (normalizados) pela metaheurística
             create_boxplot(
-                data_mean,
-                "values_"+mh_name.replace(" ", ""),
+                data_values,
+                "./figs/values_"+mh_name.replace(" ", ""),
                 "Combinações de hiperparâmetros",
                 "Resultados dos problemas normalizados",
                 hp_str
@@ -276,11 +264,12 @@ def train():
             # Gera boxplot dos tempos alcançados pela metaheurística
             create_boxplot(
                 data_times,
-                "times_"+mh_name.replace(" ", ""),
+                "./figs/times_"+mh_name.replace(" ", ""),
                 "Combinações de hiperparâmetros",
                 "Tempo de execucao (em segundos)",
                 hp_str
             )
+            metaheuristics[mh_name]['hiperparam_train'] = k_best[0][0]
 
 def test():
     now = datetime.now()
@@ -291,7 +280,10 @@ def test():
     for (mh_name, data) in metaheuristics.items():
         mh = data.get('func')
         results_mh = {} # Cada elemento é o resultado da meta heurística aplicada ao problema p.
+
         hp = data.get('hiperparam') # Hiperparâmetro escolhido para a metaheurística.
+        # hp = data.get('hiperparam_train') # Tire o comentário caso queira rodar com o hp obtido no treino.
+
         print(mh_name)
         print("HIPERPARAMETRO:", hp)
         for (p, d) in test_set.items():
@@ -330,18 +322,18 @@ def test():
         results[mh_name] = results_mh
 
     nr = normalize_test(results)
-    print(nr, end = "\n\n")
+    # print(nr, end = "\n\n")
 
     # Tabela contendo média e desvio padrão absolutos e normalizados,
     # e média e desvio padrão dos tempos de execução de todas as metaheurísticas
-    # table = create_table(results, nr)
-    # print(table)
+    table = create_table(results, nr)
+    print(table)
     # print(table.get_html_string())
 
-    # write_test_results(results, table)
+    write_test_results(results, table)
 
     # Ranqueamento das metaheurísticas segundo resultado absoluto
-    rank_abs = ranking_abs(results)
+    # rank_abs = ranking_abs(results)
     # for r in rank_abs.items():
     #     print(r)
 
@@ -351,15 +343,36 @@ def test():
 
     # Obter média dos ranqueamentos das metaheurísticas segundo resultado absoluto
     # Apresentar as metaheurísticas em ordem crescente de média de ranqueamento
-    rank_mean = ranking_abs_mean(rank_abs)
-    for r in rank_mean:
-        print(r)
+    # rank_mean = ranking_abs_mean(rank_abs)
+    # for r in rank_mean:
+    #     print(r)
 
     # Obter média dos ranqueamentos das metaheurísticas segundo resultado normalizado
     # Apresentar as metaheurísticas em ordem crescente de média de ranqueamento
+    # ???
 
-    # Gerar boxplot dos resultados normalizados alcançados pelas metaheurísticas
-    # Gerar boxplot dos tempos alcançados pelasa metaheurísticas
+    data_values = []
+    data_times = []
+    for (_, d, t) in nr:
+        data_values.append(d)
+        data_times.append(t)
+
+    # Gera boxplot dos resultados normalizados pelas metaheurísticas
+    create_boxplot(
+        data_values,
+        "./results_test/values_test",
+        "Metaheuristicas",
+        "Resultados dos problemas normalizados",
+        metaheuristics.keys()
+    )
+    # Gera boxplot dos tempos alcançados pelas metaheurísticas
+    create_boxplot(
+        data_times,
+        "./results_test/times_test",
+        "Metaheuristicas",
+        "Tempo de execucao (em segundos)",
+        metaheuristics.keys()
+    )
 
 if __name__ == '__main__':
     # train()
