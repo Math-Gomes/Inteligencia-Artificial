@@ -59,8 +59,8 @@ def k_best_status(sl, vt, sz, k):
 # expansão e retrocesso.
 def neighbors(status, vt, sz):
     e = list(filter(lambda s: is_valid(vt, s, sz), expand(status)))
-    # r = list(filter(lambda s: is_valid(vt, s, sz), regress(status)))
-    return e # + r
+    r = list(filter(lambda s: is_valid(vt, s, sz), regress(status)))
+    return e + r
 
 # Exibe o valor, peso e a configuração de um estado.
 def show_result(vt, status):

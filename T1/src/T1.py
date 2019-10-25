@@ -144,7 +144,7 @@ def ranking_abs(results):
             if e[1] != r[-1][1]:
                 i += 1
             r.append([*e, i])
-        r.sort()
+        r.sort(key = lambda k: k[2])
         rank[p] = r
 
     return rank
@@ -281,7 +281,7 @@ def test():
         mh = data.get('func')
         results_mh = {} # Cada elemento é o resultado da meta heurística aplicada ao problema p.
 
-        hp = data.get('hiperparam') # Hiperparâmetro escolhido para a metaheurística.
+        hp = data.get('hiperparam') # Hiperparâmetro escolhido para a metaheurística (selecionado após treino prévio).
         # hp = data.get('hiperparam_train') # Tire o comentário caso queira rodar com o hp obtido no treino.
 
         print(mh_name)
@@ -327,15 +327,17 @@ def test():
     # Tabela contendo média e desvio padrão absolutos e normalizados,
     # e média e desvio padrão dos tempos de execução de todas as metaheurísticas
     table = create_table(results, nr)
-    print(table)
+    print(table, end = "\n\n")
     # print(table.get_html_string())
 
     write_test_results(results, table)
 
     # Ranqueamento das metaheurísticas segundo resultado absoluto
-    # rank_abs = ranking_abs(results)
-    # for r in rank_abs.items():
-    #     print(r)
+    rank_abs = ranking_abs(results)
+    print("RANQUEAMENTO DAS METAHEURÍSTICAS SEGUNDO RESULTADO ABSOLUTO")
+    for r in rank_abs.items():
+        print(r)
+    print()
 
     # Ranqueamento das metaheurísticas segundo resultado normalizado
     # ???
@@ -350,6 +352,8 @@ def test():
     # Obter média dos ranqueamentos das metaheurísticas segundo resultado normalizado
     # Apresentar as metaheurísticas em ordem crescente de média de ranqueamento
     # ???
+
+    nr.sort(key = lambda k: mean(k[1]), reverse = True)
 
     data_values = []
     data_times = []
