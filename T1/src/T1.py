@@ -14,7 +14,7 @@ from itertools import product
 from time import time
 from statistics import mean, stdev
 from datetime import datetime
-from prettytable import PrettyTable
+from tabulate import tabulate
 
 metaheuristics = {
     'Hill Climbing': {
@@ -139,10 +139,10 @@ def ranking_abs(results):
         # a mesma colocação i.
         i = 1
         r = [[*tmp[0], i]]
-        for e in tmp[1:]:
+        for (j, e) in enumerate(tmp[1:], start = 1):
             # Verifica se o último elemento já ranqueado tem o mesmo valor que o próximo.
             if e[1] != r[-1][1]:
-                i += 1
+                i = j+1
             r.append([*e, i])
         r.sort(key = lambda k: k[2])
         rank[p] = r
@@ -150,35 +150,60 @@ def ranking_abs(results):
     return rank
 
 def ranking_abs_mean(rank_abs):
-    rank = {}
-    for mh in metaheuristics.keys():
-        rank[mh] = []
+    # rank = {}
+    # for mh in metaheuristics.keys():
+    #     rank[mh] = []
 
-    for d in rank_abs.values():
-        for (mh, _, r) in d:
-            rank[mh].append(r)
+    # for d in rank_abs.values():
+    #     for (mh, _, r) in d:
+    #         rank[mh].append(r)
 
-    for (mh, ranks) in rank.items():
-        rank[mh] = mean(ranks)
-    # for r in rank.items():
-    #     print(r)
+    # for (mh, ranks) in rank.items():
+    #     rank[mh] = mean(ranks)
+    # # for r in rank.items():
+    # #     print(r)
 
-    tmp = list(rank.items())
-    tmp.sort(key = lambda k: k[1])
-    # for r in tmp:
-    #     print(r)
+    # tmp = list(rank.items())
+    # tmp.sort(key = lambda k: k[1])
+    # # for r in tmp:
+    # #     print(r)
 
-    i = 1
-    rank_ = [[i, *tmp[0]]]
-    for e in tmp[1:]:
-        # Verifica se o último elemento já ranqueado tem o mesmo valor que o próximo.
-        if e[0] != rank_[-1][1]:
-            i += 1
-        rank_.append([i, *e])
+    # i = 1
+    # rank_ = [[i, *tmp[0]]]
+    # for e in tmp[1:]:
+    #     # Verifica se o último elemento já ranqueado tem o mesmo valor que o próximo.
+    #     if e[0] != rank_[-1][1]:
+    #         i += 1
+    #     rank_.append([i, *e])
 
-    # TRATAR O EMPATE
+    # # TRATAR O EMPATE
+    # return rank_
 
-    return rank_
+    rank = []
+    for r in rank_abs.values():
+        # Pega as posições do ranking.
+        # Ex: 1. Beam, Hill; 2. GRASP; 3. Simulated, Genético => [1,2,3]
+        pos = sorted(set(map(lambda x: x[2], r)))
+
+        # Agrupa as metaheurísticas por posição do ranking.
+        rank_aux = [] # [(i, [mh_name for (mh_name, _, p_) in r if p_ == p]) for (i, p) in enumerate(pos, start = 1)]
+        for (i, p) in enumerate(pos, start = 1):
+            aux = []
+            for (mh_name, _, p_) in r:
+                if p_ == p:
+                    aux.append(mh_name)
+            rank_aux.append(aux)
+        i = 1
+        for (j, e) in enumerate(rank_aux):
+            rank_aux[j] = (mean(list(range(i, i+len(e)))), e)
+            i += len(e)
+            # if len(e) != 1:
+                # p = mean(list(range(i, i+len(e)))) # Posição
+        rank.append(rank_aux)
+    return rank
+
+def ranking_mean(rank):
+    pass
 
 def ranking_norm(results):
     pass
@@ -326,11 +351,11 @@ def test():
 
     # Tabela contendo média e desvio padrão absolutos e normalizados,
     # e média e desvio padrão dos tempos de execução de todas as metaheurísticas
+    header = ["METAHEURÍSTICA", "MÉDIA ABSOLUTA","DESVIO PADRÃO ABSOLUTO", "MÉDIA NORMALIZADA", "DESVIO PADRÃO NORMALIZADO", "MÉDIA TEMPO (em segundos)", "DESVIO PADRÃO TEMPO (em segundos)"]
     table = create_table(results, nr)
-    print(table, end = "\n\n")
-    # print(table.get_html_string())
+    print(tabulate(table, headers = header, tablefmt = "fancy_grid", stralign = "center", numalign = "center"))
 
-    write_test_results(results, table)
+    # write_test_results(results, table, header)
 
     # Ranqueamento das metaheurísticas segundo resultado absoluto
     rank_abs = ranking_abs(results)
@@ -345,13 +370,24 @@ def test():
 
     # Obter média dos ranqueamentos das metaheurísticas segundo resultado absoluto
     # Apresentar as metaheurísticas em ordem crescente de média de ranqueamento
-    # rank_mean = ranking_abs_mean(rank_abs)
-    # for r in rank_mean:
-    #     print(r)
+    rank_abs_mean = ranking_abs_mean(rank_abs)
+    for r in rank_abs_mean:
+        print(r)
 
     # Obter média dos ranqueamentos das metaheurísticas segundo resultado normalizado
     # Apresentar as metaheurísticas em ordem crescente de média de ranqueamento
-    # ???
+    rank_mean = []
+    for mh_name in metaheuristics.keys():
+        r_m = [mh_name, []] # Rankings de uma metaheurística
+        for r_p in rank_abs_mean:
+            for (r, mhs) in r_p:
+                if mh_name in mhs:
+                    r_m[1].append(r)
+                    break
+        rank_mean.append(r_m)
+
+    for r in rank_mean:
+        print(r)
 
     nr.sort(key = lambda k: mean(k[1]), reverse = True)
 

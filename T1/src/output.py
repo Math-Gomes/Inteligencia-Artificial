@@ -4,6 +4,7 @@ import json
 import seaborn as sns
 import matplotlib.pyplot as plt
 from prettytable import PrettyTable
+from tabulate import tabulate
 
 def print_json(results):
     new = {}
@@ -32,14 +33,16 @@ def write_train_results(mh, c, p, results, k_best, normalized_results):
             f.write(str(i)+" - "+str(t)+" - "+str(mean(n))+"\n")
         f.write("=============================\n\n")
 
-def write_test_results(results, table):
+def write_test_results(results, table, table_header):
     filename = "results_test/data.txt"
     now = datetime.now()
     with open(filename, 'a') as f:
         f.write("EXECUCAO > "+now.strftime("%d/%m/%Y %H:%M:%S")+"\n")
         f.write(json.dumps(results, indent=2)+"\n")
-        f.write(table.get_string()+"\n")
-        f.write(table.get_html_string()+"\n")
+        f.write(tabulate(table, headers = table_header, tablefmt = "psql", stralign = "center", numalign = "center"))
+        f.write("\n\n")
+        f.write(tabulate(table, headers = table_header, tablefmt = "latex", stralign = "center", numalign = "center"))
+        f.write("\n")
         f.write("=============================\n\n")
 
 def create_boxplot(data, fname, x_lbl, y_lbl, x_tick_lbls):
@@ -53,32 +56,20 @@ def create_boxplot(data, fname, x_lbl, y_lbl, x_tick_lbls):
     plt.savefig(fname = fname+".svg")
 
 def create_table(results, normalized_results):
-    titles = [
-        "METAHEURÍSTICA",
-        "MÉDIA ABSOLUTA", "DESVIO PADRÃO ABSOLUTO",
-        "MÉDIA NORMALIZADA", "DESVIO PADRÃO NORMALIZADO",
-        "MÉDIA TEMPO (em segundos)", "DESVIO PADRÃO TEMPO (em segundos)"
-    ]
-    table = PrettyTable(titles)
     lines = []
     for (mh_name, nr_mh, _) in normalized_results:
         lines.append([
             mh_name,
-            results[mh_name]['values_mean'], results[mh_name]['values_stdev'],
-            mean(nr_mh), stdev(nr_mh),
-            results[mh_name]['times_mean'], results[mh_name]['times_stdev']
+            results[mh_name]['values_mean'],
+            results[mh_name]['values_stdev'],
+            mean(nr_mh),
+            stdev(nr_mh),
+            results[mh_name]['times_mean'],
+            results[mh_name]['times_stdev']
         ])
-        # table.add_row(lines[-1])
-
-    lines.sort(key = lambda e: e[1], reverse = True)
-    for l in lines:
-        table.add_row(l)
-
-    # print(table)
-    # print(table.get_html_string())
-
+    lines.sort(key = lambda e: e[3], reverse = True) # Ordena pela média normalizada
     # print("METAHEURISTICA\tMEDIA_ABS\tSTDEV_ABS\tMEDIA_NORM\tSTDEV_NORM\tMEDIA_TEMPO\tSTDEV_TEMPO")
     # for l in lines:
     #     print("{0}\t{1:.3f}\t{2:.3f}\t{3:.3f}\t{4:.3f}\t{5:.3f}\t{6:.3f}".format(*l))
 
-    return table
+    return lines
