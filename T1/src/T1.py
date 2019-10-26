@@ -373,6 +373,7 @@ def test():
     rank_abs_mean = ranking_abs_mean(rank_abs)
     for r in rank_abs_mean:
         print(r)
+    print()
 
     # Obter média dos ranqueamentos das metaheurísticas segundo resultado normalizado
     # Apresentar as metaheurísticas em ordem crescente de média de ranqueamento
@@ -386,6 +387,9 @@ def test():
                     break
         rank_mean.append(r_m)
 
+    for r in rank_mean:
+        r[1] = mean(r[1])
+    rank_mean.sort(key = lambda k: k[1])
     for r in rank_mean:
         print(r)
 
