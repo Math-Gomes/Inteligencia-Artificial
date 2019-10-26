@@ -14,6 +14,9 @@ def print_json(results):
     return "results = "+json.dumps(new, indent=4)
 
 def write_train_results(mh, c, p, results, k_best, normalized_results):
+    '''
+    Escreve no arquivo informações relativas ao algoritmo de treino.
+    '''
     filename = "partial_results/r_"+mh.replace(" ", "")+".txt"
     now = datetime.now()
     with open(filename, 'a') as f:
@@ -32,17 +35,31 @@ def write_train_results(mh, c, p, results, k_best, normalized_results):
             f.write(str(i)+" - "+str(t)+" - "+str(mean(n))+"\n")
         f.write("=============================\n\n")
 
-def write_test_results(results, table, table_header):
+def write_test_results(results, normalized_results, l1, h1, l2, h2, l3, h3):
+    '''
+    Escreve no arquivo informações relativas ao algoritmo de teste.
+    '''
     filename = "results_test/results.txt"
     now = datetime.now()
     with open(filename, 'a') as f:
         f.write("EXECUCAO > "+now.strftime("%d/%m/%Y %H:%M:%S")+"\n")
-        f.write(json.dumps(results, indent=2)+"\n")
-        # f.write(tabulate(table, headers = table_header, tablefmt = "psql", stralign = "center", numalign = "center"))
-        # f.write("\n\n")
-        # f.write(tabulate(table, headers = table_header, tablefmt = "latex", stralign = "center", numalign = "center"))
-        f.write("\n")
-        f.write("=============================\n\n")
+        f.write(json.dumps(results, indent=2)+"\n\n")
+
+        for nr in normalized_results:
+            f.write(str(nr)+"\n")
+
+        f.write("\nTable 1:\n")
+        f.write(tabulate(l1, headers = h1, tablefmt = "psql", stralign = "center", numalign = "center"))
+        f.write(tabulate(l1, headers = h1, tablefmt = "latex", stralign = "center", numalign = "center"))
+
+        f.write("\nTable 2:\n")
+        f.write(tabulate(l2, headers = h2, tablefmt = "psql", stralign = "center", numalign = "center"))
+        f.write(tabulate(l2, headers = h2, tablefmt = "latex", stralign = "center", numalign = "center"))
+        
+        f.write("\nTable 3:\n")
+        f.write(tabulate(l3, headers = h3, tablefmt = "psql", stralign = "center", numalign = "center"))
+        f.write(tabulate(l3, headers = h3, tablefmt = "latex", stralign = "center", numalign = "center"))
+        f.write("\n=============================\n\n")
 
 def create_boxplot(data, fname, x_lbl, y_lbl, x_tick_lbls):
     fig = plt.figure()
@@ -150,8 +167,10 @@ def table_1(results, normalized_results):
         print(h, end = " / ")
     print()
     for l in lines:
-        print("{0}\t{1:.3f}\t{2:.3f}\t{3:.3f}\t{4:.3f}\t{5:.3f}\t{6:.3f}".format(*l))
+        print("{0}   {1:.3f}   {2:.3f}   {3:.3f}   {4:.3f}   {5:.3f}   {6:.3f}".format(*l))
     print("\n")
+
+    return lines, header
 
 def table_2(rank_abs_mean):
     '''
@@ -175,6 +194,8 @@ def table_2(rank_abs_mean):
     for l in lines:
         print(*l)
     print("\n")
+
+    return lines, header
 
 def table_3(normalized_results):
     '''
@@ -201,3 +222,5 @@ def table_3(normalized_results):
     for l in lines:
         print(*l)
     print("\n")
+
+    return lines, header

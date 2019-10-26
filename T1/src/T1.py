@@ -1,3 +1,8 @@
+'''
+Primeiro trabalho de Inteligência Artificial - 2019/2
+Matheus Gomes Arante de Souza
+'''
+
 from statusManager import *
 from hillClimbing import hill_climbing
 from beamSearch import beam_search
@@ -10,7 +15,6 @@ from itertools import product
 from time import time
 from statistics import mean, stdev
 from datetime import datetime
-from tabulate import tabulate
 
 metaheuristics = {
     'Hill Climbing': {
@@ -26,7 +30,7 @@ metaheuristics = {
         'param': {
             'k': [10, 25, 50, 100]
         },
-       'hiperparam': (10,)
+       'hiperparam': (10,) # Hiperparâmetro escolhido para o teste.
     },
     'Simulated Annealing': {
         'func': simulated_annealing,
@@ -36,7 +40,7 @@ metaheuristics = {
             'alpha': [0.95, 0.85, 0.7],
             'num_iter': [350, 500]
         },
-       'hiperparam': (500, 0.95, 500)
+       'hiperparam': (500, 0.95, 500) # Hiperparâmetro escolhido para o teste.
     },
     'GRASP': {
         'func': grasp,
@@ -45,7 +49,7 @@ metaheuristics = {
             'num_iter': [50, 100, 200, 350, 500],
             'num_best': [2, 5, 10, 15]
         },
-       'hiperparam': (500, 5)
+       'hiperparam': (500, 5) # Hiperparâmetro escolhido para o teste.
     },
     'Genetic Algorithm': {
         'func': genetic,
@@ -55,11 +59,14 @@ metaheuristics = {
             'crossover_tax': [0.75, 0.85, 0.95],
             'mutation_tax': [0.10, 0.20, 0.30]
         },
-       'hiperparam': (30, 0.75, 0.3)
+       'hiperparam': (30, 0.75, 0.3) # Hiperparâmetro escolhido para o teste.
     }
 }
 
 def k_best_hiperparams(hp, normalized_results, k):
+    '''
+    Retorna os k melhores hiperparâmetros obtidos no treino de uma metaheurística.
+    '''
     k_best = []
     for n in normalized_results:
         (c, nr, _) = n
@@ -74,6 +81,9 @@ def k_best_hiperparams(hp, normalized_results, k):
     return k_best
 
 def normalize_train(results, hp):
+    '''
+    Calcula os resultados normalizados do treino.
+    '''
     norm = {} # Resultados normalizados
     times = []
 
@@ -104,6 +114,9 @@ def normalize_train(results, hp):
     return list(zip(hp, nr_comb, times)) # (Combinação de hp, result. norm., tempos de exe.)
 
 def normalize_test(results):
+    '''
+    Calcula os resultados normalizados do teste.
+    '''
     norm = {} # Resultados normalizados
     times = []
 
@@ -316,7 +329,7 @@ def test():
     nr = normalize_test(results)
     # print(nr, end = "\n\n")
 
-    table_1(results, nr)
+    l1, h1 = table_1(results, nr)
 
     rank_abs = ranking_abs(results)
 
@@ -325,13 +338,13 @@ def test():
         print(r)
     print()
 
-    table_2(ranking_abs_mean(rank_abs))
+    l2, h2 = table_2(ranking_abs_mean(rank_abs))
 
-    table_3(nr)
+    l3, h3 = table_3(nr)
 
     boxplot_test(nr)
 
-    write_test_results(results, [], [])
+    write_test_results(results, nr, l1, h1, l2, h2, l3, h3)
 
     print("FIM DO TESTE\n")
 
