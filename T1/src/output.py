@@ -3,7 +3,7 @@ from statistics import mean, stdev
 import json
 import seaborn as sns
 import matplotlib.pyplot as plt
-from tabulate import tabulate
+# from tabulate import tabulate
 
 def print_json(results):
     new = {}
@@ -48,17 +48,18 @@ def write_test_results(results, normalized_results, l1, h1, l2, h2, l3, h3):
         for nr in normalized_results:
             f.write(str(nr)+"\n")
 
-        f.write("\nTable 1:\n")
-        f.write(tabulate(l1, headers = h1, tablefmt = "psql", stralign = "center", numalign = "center"))
-        f.write(tabulate(l1, headers = h1, tablefmt = "latex", stralign = "center", numalign = "center"))
+        # Se a biblioteca tabulate estiver instalada, retire o seguinte comentário desta linha
+        # f.write("\nTable 1:\n")
+        # f.write(tabulate(l1, headers = h1, tablefmt = "psql", stralign = "center", numalign = "center"))
+        # f.write(tabulate(l1, headers = h1, tablefmt = "latex", stralign = "center", numalign = "center"))
 
-        f.write("\nTable 2:\n")
-        f.write(tabulate(l2, headers = h2, tablefmt = "psql", stralign = "center", numalign = "center"))
-        f.write(tabulate(l2, headers = h2, tablefmt = "latex", stralign = "center", numalign = "center"))
+        # f.write("\nTable 2:\n")
+        # f.write(tabulate(l2, headers = h2, tablefmt = "psql", stralign = "center", numalign = "center"))
+        # f.write(tabulate(l2, headers = h2, tablefmt = "latex", stralign = "center", numalign = "center"))
         
-        f.write("\nTable 3:\n")
-        f.write(tabulate(l3, headers = h3, tablefmt = "psql", stralign = "center", numalign = "center"))
-        f.write(tabulate(l3, headers = h3, tablefmt = "latex", stralign = "center", numalign = "center"))
+        # f.write("\nTable 3:\n")
+        # f.write(tabulate(l3, headers = h3, tablefmt = "psql", stralign = "center", numalign = "center"))
+        # f.write(tabulate(l3, headers = h3, tablefmt = "latex", stralign = "center", numalign = "center"))
         f.write("\n=============================\n\n")
 
 def create_boxplot(data, fname, x_lbl, y_lbl, x_tick_lbls):
