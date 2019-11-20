@@ -13,7 +13,7 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-class OneR(BaseEstimator, ClassifierMixin):
+class Centroid(BaseEstimator, ClassifierMixin):
     def __init__(self, demo_param = 'demo'):
         self.demo_param = demo_param
     
@@ -21,41 +21,13 @@ class OneR(BaseEstimator, ClassifierMixin):
         return super().get_params(deep)
 
     def fit(self, X, y):
-        X, y = check_X_y(X, y)
-        self.classes_ = unique_labels(y)
-        self.disc = KBinsDiscretizer(n_bins = len(np.unique(y)), encode = 'ordinal', strategy = 'quantile')
-        X = self.disc.fit_transform(X)
-
-        ct_list, values = [], []
-
-        for (i, j) in enumerate(X.T):
-            ct = pd.crosstab(j, y)
-            ct_list.append(ct)
-
-            # Soma dos maiores elementos de cada linha da tabela de contingência.
-            sum_ = sum(max(list(ct.loc[k,:])) for k in range(ct.shape[0]))
-
-            values.append(sum_)
-
-        self.c = np.argmax(values)
-        tb = ct_list[self.c]
-        self.rules = list(zip(np.array(tb.index), [np.argmax(t) for t in tb.values]))
+        pass
 
     def predict(self, X):
-        X = self.disc.fit_transform(X)
-        col = X.T[self.c]
-        result = []
-        for e in col:
-            classify = 0
-            for (v, c) in self.rules:
-                if v == e:
-                    classify = c
-                    break
-            result.append(classify)
-        return result # [c for e in col for (v, c) in self.rules if v == e]
+        pass
 
 if __name__ == "__main__":
-    nn = OneR()
+    nn = Centroid()
 
     # base = datasets.load_iris()
     base = datasets.load_digits()

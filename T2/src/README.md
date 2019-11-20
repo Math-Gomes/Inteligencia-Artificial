@@ -2,11 +2,13 @@
 
 - _Implementar_:
     - [x] ZeroR
-    - [ ] OneR
-    - [ ] OneR Probabilístico
+    - [x] OneR
+    - [ ] OneR Probabilístico (talvez não precise)
     - [ ] Centróide
-    - [ ] Centróide OneR
-    - [ ] Naive Bayes Gaussiano
+    - [ ] Centróide OneR (talvez não precise)
+
+- _Classificadores já implementados pelo scikit_:
+    - [x] Naive Bayes Gaussiano
     - [ ] Knn
     - [ ] Árvore de decisão
     - [ ] Rede Neural
