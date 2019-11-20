@@ -28,7 +28,7 @@ class OneR(BaseEstimator, ClassifierMixin):
 
         ct_list, values = [], []
 
-        for (i, j) in enumerate(X.T):
+        for j in X.T:
             ct = pd.crosstab(j, y)
             ct_list.append(ct)
 
@@ -39,20 +39,13 @@ class OneR(BaseEstimator, ClassifierMixin):
 
         self.c = np.argmax(values)
         tb = ct_list[self.c]
-        self.rules = list(zip(np.array(tb.index), [np.argmax(t) for t in tb.values]))
+        n, m = tb.shape
+        self.rules = [np.argmax(t) for t in tb.values] + [0]*(m-n)
 
     def predict(self, X):
         X = self.disc.fit_transform(X)
         col = X.T[self.c]
-        result = []
-        for e in col:
-            classify = 0
-            for (v, c) in self.rules:
-                if v == e:
-                    classify = c
-                    break
-            result.append(classify)
-        return result # [c for e in col for (v, c) in self.rules if v == e]
+        return [self.rules[e] for e in col.astype(int)]
 
 if __name__ == "__main__":
     nn = OneR()

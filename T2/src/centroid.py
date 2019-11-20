@@ -7,6 +7,7 @@ from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.utils.multiclass import unique_labels
 from sklearn.utils.validation import check_array, check_is_fitted, check_X_y
+from scipy.spatial.distance import euclidean
 
 def warn(*args, **kwargs):
     pass
@@ -21,10 +22,17 @@ class Centroid(BaseEstimator, ClassifierMixin):
         return super().get_params(deep)
 
     def fit(self, X, y):
-        pass
+        X, y = check_X_y(X, y)
+        self.classes_ = unique_labels(y)
+        self.centroids = []
+        for c in self.classes_:
+            group = [X[j] for (j, c_) in enumerate(y) if c_ == c]
+            centr = [np.mean(coord) for coord in zip(*group)]
+            self.centroids.append(centr)
 
     def predict(self, X):
-        pass
+        return [np.argmin([euclidean(e, c) for c in self.centroids]) for e in X]
+
 
 if __name__ == "__main__":
     nn = Centroid()
