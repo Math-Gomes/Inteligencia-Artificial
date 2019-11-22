@@ -100,6 +100,6 @@ def part2():
 if __name__ == "__main__":
     begin = time()
     part1()
-    part2()
+    # part2()
     end = time()
     print('Tempo de execucao:', end - begin, 'segundos.')

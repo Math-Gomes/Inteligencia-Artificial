@@ -9,6 +9,8 @@ from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.utils.multiclass import unique_labels
 from sklearn.utils.validation import check_array, check_is_fitted, check_X_y
 
+from itertools import accumulate
+
 def warn(*args, **kwargs):
     pass
 import warnings
@@ -23,56 +25,56 @@ class OneRProbabilistic(BaseEstimator, ClassifierMixin):
 
     def fit(self, X, y):
         X, y = check_X_y(X, y)
-        self.classes_ = unique_labels(y)
-        self.disc = KBinsDiscretizer(n_bins = len(np.unique(y)), encode = 'ordinal', strategy = 'quantile')
-        X = self.disc.fit_transform(X)
+        self.classes = unique_labels(y)
+        self.discret = KBinsDiscretizer(n_bins = len(np.unique(y)), encode = 'ordinal', strategy = 'quantile')
+        X = self.discret.fit_transform(X)
 
-        ct_list, values = [], []
+        tables, sums = [], []
+        values_X = np.unique(X)
 
-        for i in X.T:
-            ct = pd.crosstab(i, y)
-            ct_list.append(ct)
+        for feat in X.T:
+            tb = [[0]*len(self.classes) for _ in range(len(values_X))]
+            for j, f_value in enumerate(feat.astype(int)):
+                tb[f_value][y[j]] += 1
+            s = sum(max(list(tb[k])) for k in range(len(tb)))
+            sums.append(s)
+            tables.append(tb)
 
-            # Soma dos maiores elementos de cada linha da tabela de contingência.
-            sum_ = sum(max(list(ct.loc[k,:])) for k in range(ct.shape[0]))
-
-            values.append(sum_)
-
-        self.c = np.argmax(values)
-        tb = ct_list[self.c]
-        n, m = tb.shape
-        # self.rules = [np.argmax(t) for t in tb.values] + [0]*(m-n)
-        rules = []
-        for t in tb.values:
-            chances = list(map(lambda k: k/max(t), t)) # Chance de classificar como essa classe
+        self.best_feat = np.argmax(sums)
+        self.rules = []
+        for row in tables[self.best_feat]:
+            chances = list(map(lambda k: k/sum(row), row))
             chances = list(zip(chances, range(len(chances))))
             chances.sort()
-            r = random()
-            for (chance, i) in chances:
-                if r < chance:
-                    rules.append(i)
-                    break
-        self.rules = rules + [0]*(m-n)
-        print(self.rules)
+            c_ = accumulate(list(map(lambda k: k[0], chances)))
+            chances = list(zip(c_, list(map(lambda k: k[1], chances))))
+            self.rules.append(chances)
 
     def predict(self, X):
-        X = self.disc.fit_transform(X)
-        col = X.T[self.c]
-        return [self.rules[e] for e in col.astype(int)]
+        X = self.discret.fit_transform(X)
+        column = X.T[self.best_feat]
+        result = []
+        for e in column.astype(int):
+            r = random()
+            for (chance, class_) in self.rules[e]:
+                if r < chance:
+                    result.append(class_)
+                    break
+        return result
 
 if __name__ == "__main__":
     nn = OneRProbabilistic()
 
-    # base = datasets.load_iris()
-    base = datasets.load_digits()
+    base = datasets.load_iris()
+    # base = datasets.load_digits()
     # base = datasets.load_wine()
     # base = datasets.load_breast_cancer()
 
     x_train, x_test, y_train, y_test = train_test_split(base.data, base.target, test_size = 0.4, random_state = 0)
 
-    # nn.fit(x_train, y_train)
-    # y_pred = nn.predict(x_test)
+    nn.fit(x_train, y_train)
+    y_pred = nn.predict(x_test)
 
-    scores = cross_val_score(nn, base.data, base.target, cv = 10)
-    print ('CV Accuracy: %.3f +/- %.3f' % (np.mean(scores), np.std(scores)))
-    print(scores)
+    # scores = cross_val_score(nn, base.data, base.target, cv = 10)
+    # print ('CV Accuracy: %.3f +/- %.3f' % (np.mean(scores), np.std(scores)))
+    # print(scores)
