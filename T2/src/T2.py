@@ -1,3 +1,8 @@
+'''
+Segundo trabalho de Inteligência Artificial - 2019/2
+Matheus Gomes Arante de Souza
+'''
+
 import numpy as np
 from sklearn import datasets
 from sklearn.model_selection import cross_val_score, train_test_split
@@ -5,6 +10,8 @@ from sklearn.model_selection import cross_val_score, train_test_split
 from zeroR import ZeroR
 from oneR import OneR
 from centroid import Centroid
+from oneRprob import OneRProbabilistic
+from oneRcentroid import OneRCentroid
 from sklearn.naive_bayes import GaussianNB
 
 from sklearn.model_selection import cross_val_score
@@ -34,7 +41,9 @@ classifiers1 = {
     'ZeroR': ZeroR(),
     'OneR': OneR(),
     'Centroid': Centroid(),
-    'Naive Bayes Gaussiano': GaussianNB()
+    'Naive Bayes Gaussiano': GaussianNB(),
+    'OneR Prob': OneRProbabilistic(),
+    'OneR Centroid': OneRCentroid()
 }
 
 classifiers2 = {
@@ -62,7 +71,7 @@ def part1():
     results = []
 
     for (b_name, base) in bases.items():
-        print(b_name)
+        print('\n', b_name)
         base_results, base_scores = [], []
         for (c_name, classifier) in classifiers1.items():
             print('  ', c_name)
@@ -73,7 +82,7 @@ def part1():
         create_boxplot(base_scores, 'figs/part1_' + b_name, 'CLASSIFICADORES', 'SCORES', classifiers1.keys())
         results.append(base_results)
 
-    write_results(list(zip(bases.keys(), results)), 'results/part1.txt',  ['CLASSIFICADOR', 'MÉDIA', 'DESVIO PADRÃO'])
+    write_results(list(zip(bases.keys(), results)), 'results_part1.txt',  ['CLASSIFICADOR', 'MÉDIA', 'DESVIO PADRÃO'], 1)
 
 def part2():
     print('Executando parte 2:')
@@ -95,11 +104,11 @@ def part2():
         create_boxplot(base_scores, 'figs/part2_' + b_name, 'CLASSIFICADORES', 'SCORES', classifiers2.keys())
         results.append(base_results)
 
-    write_results(list(zip(bases.keys(), results)), 'results/part2.txt', ['CLASSIFICADOR', 'MÉDIA', 'DESVIO PADRÃO', 'MELHOR(ES) PARAMETRO(S)'])
+    write_results(list(zip(bases.keys(), results)), 'results_part2.txt', ['CLASSIFICADOR', 'MÉDIA', 'DESVIO PADRÃO', 'MELHOR(ES) PARAMETRO(S)'], 2)
 
 if __name__ == "__main__":
     begin = time()
     part1()
-    # part2()
+    part2()
     end = time()
     print('Tempo de execucao:', end - begin, 'segundos.')
