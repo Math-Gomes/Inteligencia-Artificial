@@ -79,10 +79,10 @@ def part1():
             scores = cross_val_score(classifier, base.data, base.target, cv = 10)
             base_scores.append(scores)
             base_results.append([c_name, np.mean(scores), np.std(scores)])
-        create_boxplot(base_scores, 'figs/part1_' + b_name, 'CLASSIFICADORES', 'SCORES', classifiers1.keys())
+        create_boxplot(base_scores, 'results/part1_' + b_name, 'CLASSIFICADORES', 'SCORES', classifiers1.keys())
         results.append(base_results)
 
-    write_results(list(zip(bases.keys(), results)), 'results_part1.txt',  ['CLASSIFICADOR', 'MÉDIA', 'DESVIO PADRÃO'], 1)
+    write_results(list(zip(bases.keys(), results)), 'results/part1.txt',  ['CLASSIFICADOR', 'MÉDIA', 'DESVIO PADRÃO'], 1)
 
 def part2():
     print('Executando parte 2:')
@@ -101,10 +101,10 @@ def part2():
             scores = cross_val_score(gs, base.data, base.target, scoring = 'accuracy', cv = 10)
             base_scores.append(scores)
             base_results.append([c_name, np.mean(scores), np.std(scores), best_params])
-        create_boxplot(base_scores, 'figs/part2_' + b_name, 'CLASSIFICADORES', 'SCORES', classifiers2.keys())
+        create_boxplot(base_scores, 'results/part2_' + b_name, 'CLASSIFICADORES', 'SCORES', classifiers2.keys())
         results.append(base_results)
 
-    write_results(list(zip(bases.keys(), results)), 'results_part2.txt', ['CLASSIFICADOR', 'MÉDIA', 'DESVIO PADRÃO', 'MELHOR(ES) PARAMETRO(S)'], 2)
+    write_results(list(zip(bases.keys(), results)), 'results/part2.txt', ['CLASSIFICADOR', 'MÉDIA', 'DESVIO PADRÃO', 'MELHOR(ES) PARAMETRO(S)'], 2)
 
 if __name__ == "__main__":
     begin = time()
