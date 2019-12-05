@@ -1,0 +1,115 @@
+scikit-learn: 
+https://scikit-learn.org/stable/user_guide.html
+
+http://scikit-learn.org/stable/tutorial/statistical_inference/supervised_learning.html
+
+2. Segunda aula
+
+1.3. Recordando Divisão percentual 60/40
+
+import numpy as np
+from sklearn import datasets
+iris = datasets.load_iris()
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(iris.data, iris.target, test_size=0.4, random_state=0)
+from sklearn.neighbors import KNeighborsClassifier
+knn = KNeighborsClassifier()
+knn.fit(X_train, y_train) 
+y_predict = knn.predict(X_test)
+y_predict
+y_test
+knn.score(X_test, y_test)
+
+1.4 Metricas 
+
+from sklearn.metrics import confusion_matrix
+confmat = confusion_matrix(y_true=y_test, y_pred=y_predict)
+confmat
+
+from sklearn.metrics import precision_score, recall_score, f1_score
+
+precision_score(y_pred=y_predict, y_true=y_test, average='macro')
+print("precision score: %.2f" % precision_score(y_pred=y_predict, y_true=y_test, average='macro'))
+print("precision score: %.2f" % precision_score(y_pred=y_predict, y_true=y_test, average='micro'))
+print("precision score: %.2f" % precision_score(y_pred=y_predict, y_true=y_test, average='weighted'))
+
+Calcular na mao
+
+Fazer o mesmo para recall
+recall_score(y_pred=y_predict, y_true=y_test, average='macro')
+print("recall score: %.2f" % recall_score(y_pred=y_predict, y_true=y_test, average='macro'))
+print("recall score: %.2f" % recall_score(y_pred=y_predict, y_true=y_test, average='micro'))
+print("recall score: %.2f" % recall_score(y_pred=y_predict, y_true=y_test, average='weighted'))
+
+Calcular na mao
+
+Fazer o mesmo para fmeasure
+f1_score(y_pred=y_predict, y_true=y_test, average='macro')
+print("fmeasure score: %.2f" % f1_score(y_pred=y_predict, y_true=y_test, average='macro'))
+print("fmeasure score: %.2f" % f1_score(y_pred=y_predict, y_true=y_test, average='micro'))
+print("fmeasure score: %.2f" % f1_score(y_pred=y_predict, y_true=y_test, average='weighted'))
+
+Calcular na mao
+
+Validação cruzada:
+http://scikit-learn.org/stable/modules/cross_validation.html
+
+2.1. Rodar 10-fold cv na base iris com knn
+
+from sklearn.model_selection import cross_val_score
+scores = cross_val_score(knn, iris.data, iris.target, cv=5)
+
+2.2. Obter média e intervalo para acuracia
+
+print("Mean: %0.2f Standard Deviation: %0.2f" % (scores.mean(), scores.std()))
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+2.3. Obter média e intervalo para acuracia, f1_macro, precision_macro e recall_macro
+
+from sklearn.model_selection import cross_validate
+scorings = ['accuracy', 'precision_macro', 'recall_macro', 'f1_macro']
+scores = cross_validate(knn, iris.data, iris.target, scoring=scorings, cv=5)
+
+scores_acc = scores['test_accuracy']
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores_acc.mean(), scores_acc.std() * 2))
+
+Fazer as demais metricas...
+
+2.4. Hipertuning com Grid Search
+
+from sklearn.model_selection import GridSearchCV
+grade = {'n_neighbors': [1, 3, 5]}
+gs = GridSearchCV(estimator=knn, param_grid = grade, scoring='accuracy', cv = 10)
+gs = gs.fit(X_train, y_train)
+print(gs.best_score_)
+print(gs.best_params_)
+print(gs.cv_results_.keys())
+
+
+2.4. Carregar digits e treinar e testar com divisao 60/40 (SVM com C  1)
+
+2.5. Rodar 10-fold cv na base de treino de digits com SVM usando média da acurácia e intervalo 
+variando C (0.1, 0.5, 1.0, 1.5, 2.0).
+
+2.6. Treinar e testar com divisao treino/teste (SVM com melhor valor médio/intervalo de C )
+
+Normalização:
+http://scikit-learn.org/stable/modules/preprocessing.html#standardization-or-mean-removal-and-variance-scaling
+
+2.7. Normalização com z-score no exemplo até a transformação do conjunto teste
+
+2.8. Repetir normalização com z-score na base digits
+
+2.9. Usar SVM com C=1 e divisao 60/40 na base digits normalizada (Voltar para 
+http://scikit-learn.org/stable/modules/cross_validation.html)
+
+2.10. Repetir com normalização para intervalo 
+http://scikit-learn.org/stable/modules/preprocessing.html#scaling-features-to-a-range
+
+2.11. Discretização http://scikit-learn.org/stable/modules/preprocessing.html#discretization	
+
+
+
+
+
+

@@ -1,0 +1,17 @@
+0. Implementar Classificador One R
+   a. Discretizar caracteristicas da base usando numero de intervalos igual ao numero de classes e intervalos de mesma frequencia
+   b. Gerar tabelas de contigencia de caracteristica X classe 
+   c. Escolher como melhor caracteristica aquele que proporciona a maior acuracia
+   d. Elaborar as regras do OneR
+
+1. Implementar classificador OneR Probabilistico: Consiste em escolher o melhor atributo tal como no OneR, porém ao se classificar, em vez de sempre escolher a classe majoritaria, usa-se a roleta para fazer uma escolha de classe probabilistica. Suponha que o melhor atributo seja A com valores a1 e a2. Quando A = a1, temos 7 exemplos da classe y1 e 3 exemplos da classe y2. Quando A = a2, temos 2 exemplos da classe y1 e 3 exemplos da classe y2.
+
+Assim, quando formos classificar um caso com A = a1, se sorteia na roleta com 70% de chance para a classe y1 e 30% de chance para a classe y2. Quando formos classificar um caso com A = a2, se sorteia na roleta com 40% de chance para a classe y1 e 60% de chance para a classe y2.
+
+2. Implementar classificador  Centroide: Usa-se os exemplos de cada classe para determinar o centroide da classe. Assumam distancia euclideana. Quando for classificar um caso, calcula-se a distancia euclideana do caso para os centroides de cada classe. Atribui-se a classe do centroide mais proximo.
+
+3. Implementar classificador OneR Centroide: Consiste em escolher o melhor atributo tal como no OneR, depois divide-se os exemplos de cada classe para cada valor do melhor atributo formando vários grupo. Calcula-se o centroide desses grupos e quando for classificar, procede-se como no Classificador Centroide.
+
+4. Fazer uma comparacao com validacao cruzada de 10 folds na base iris e na base digits usando os classificadores ZeroR, NN, OneR, OneR Probabilistico, Centroide e OneR Centroide.
+
+ 
